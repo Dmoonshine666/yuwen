@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>语文智典</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft YaHei", "SimSun", sans-serif;
+        }
+
+        body {
+            background: #f5f1e6;
+            padding: 50px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .nav-container {
+            background: white;
+            border-radius: 16px;
+            padding: 40px 30px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            max-width: 800px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .nav-title {
+            font-size: 28px;
+            color: #2d3748;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #e8f4f8;
+            font-weight: bold;
+        }
+
+        .btn-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 20px;
+        }
+
+        .nav-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 25px 15px;
+            background-color: #fafafa;
+            border: 1px solid #eee;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            color: #2d3748;
+        }
+
+        .nav-btn:hover {
+            background-color: #e8f4f8;
+            border-color: #2196F3;
+            transform: translateY(-3px);
+        }
+
+        .btn-icon {
+            font-size: 36px;
+            margin-bottom: 12px;
+        }
+
+        .btn-text {
+            font-size: 20px;
+            font-weight: 500;
+        }
+
+        /* 不同按钮的图标颜色区分 */
+        .icon-yinyun { color: #4CAF50; }
+        .icon-zixing { color: #2196F3; }
+        .icon-gushi { color: #9C27B0; }
+        .icon-chengyu { color: #FF9800; }
+        .icon-wenyan { color: #F44336; }
+        .icon-changshi { color: #00BCD4; }
+        .icon-cuoti { color: #795548; }
+    </style>
+</head>
+<body>
+    <div class="nav-container">
+        <h1 class="nav-title">语 文 智 典</h1>
+        <div class="btn-grid">
+            <!-- 替换 href 中的链接为对应工具网页的实际地址 -->
+            <a href="字音.html" class="nav-btn" target="_blank">
+                <div class="btn-icon icon-yinyun">🔤</div>
+                <div class="btn-text">字音</div>
+            </a >
+            <a href="字形.html" class="nav-btn" target="_blank">
+                <div class="btn-icon icon-zixing">✏️</div>
+                <div class="btn-text">字形</div>
+            </a >
+            <a href="古诗词.html" class="nav-btn" target="_blank">
+                <div class="btn-icon icon-gushi">📜</div>
+                <div class="btn-text">古诗词</div>
+            </a >
+            <a href="成语.html" class="nav-btn" target="_blank">
+                <div class="btn-icon icon-chengyu">📚</div>
+                <div class="btn-text">成语</div>
+            </a >
+            <a href="文言文.html" class="nav-btn" target="_blank">
+                <div class="btn-icon icon-wenyan">📖</div>
+                <div class="btn-text">文言文</div>
+            </a >
+            <a href="文学常识.html" class="nav-btn" target="_blank">
+                <div class="btn-icon icon-changshi">🏷️</div>
+                <div class="btn-text">文学常识</div>
+            </a >
+            <a href="错题本.html" class="nav-btn" target="_blank">
+                <div class="btn-icon icon-cuoti">📝</div>
+                <div class="btn-text">错题本</div>
+            </a >
+        </div>
+    </div>
+</body>
+</html>

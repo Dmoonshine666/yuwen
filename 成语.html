@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>成语学习卡</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft YaHei", sans-serif;
+        }
+
+        body {
+            background: #f5f1e6;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .upload-area {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .upload-title {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .upload-btn-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+            margin-bottom: 10px;
+        }
+
+        .btn-upload {
+            border: 2px dashed #2196F3;
+            color: #2196F3;
+            background-color: white;
+            padding: 8px 20px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .upload-btn-wrapper input[type=file] {
+            font-size: 100px;
+            position: absolute;
+            left: 0;
+            top: 0;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .upload-tip {
+            font-size: 14px;
+            color: #666;
+            margin-top: 10px;
+            line-height: 1.5;
+        }
+
+        .batch-info {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #2196F3;
+            font-weight: bold;
+        }
+
+        .file-info {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #4CAF50;
+            font-weight: bold;
+        }
+
+        .search-area {
+            background: white;
+            border-radius: 16px;
+            padding: 15px 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            max-width: 500px;
+            width: 100%;
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 10px 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            outline: none;
+        }
+
+        .search-input:focus {
+            border-color: #2196F3;
+        }
+
+        .btn-search {
+            background: #2196F3;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 0 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .container {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+            overflow: visible !important;
+        }
+
+        .idiom-wrap {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            margin: 15px 0 25px;
+        }
+
+        .audio-btn {
+            border: none;
+            background: none;
+            font-size: 20px;
+            color: #2196F3;
+            cursor: pointer;
+            padding: 2px;
+            line-height: 1;
+        }
+
+        .idiom {
+            font-size: 36px;
+            color: #333;
+            font-weight: bold;
+            letter-spacing: 2px;
+        }
+
+        .idiom-pinyin {
+            font-size: 18px;
+            color: #666;
+            margin: -15px 0 20px;
+            letter-spacing: 1px;
+        }
+
+        .btn-group {
+            margin: 15px 0 30px;
+        }
+
+        .btn {
+            padding: 10px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            cursor: pointer;
+            margin: 5px;
+        }
+
+        .btn-show-meaning {
+            background: #9C27B0;
+            color: white;
+        }
+
+        .btn-next {
+            background: #2196F3;
+            color: white;
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-next.enabled {
+            opacity: 1;
+            cursor: pointer;
+        }
+
+        .btn-continue {
+            background: #ff9e80;
+            color: white;
+            margin-top: 20px;
+            padding: 12px 30px;
+            font-size: 20px;
+        }
+
+        .meaning-area {
+            background: #f8f8f8;
+            border-radius: 12px;
+            padding: 35px 25px;
+            margin: 0 0 30px;
+            text-align: left;
+            height: 200px;
+            line-height: 1.8;
+            position: relative;
+            z-index: 1;
+            width: 100% !important;
+            border: 1px solid #eee;
+        }
+
+        .meaning-content {
+            font-size: 16px;
+            color: #555;
+            display: none;
+            height: 100%;
+            display: flex;
+            align-items: flex-start;
+        }
+
+        .meaning-content.show {
+            display: block;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .meaning-title {
+            font-size: 18px;
+            color: #333;
+            font-weight: bold;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .meaning-title::before {
+            content: "📚";
+            font-size: 20px;
+        }
+
+        .meaning-text {
+            width: 100%;
+            font-size: 16px;
+            color: #555;
+            line-height: 1.8;
+        }
+
+        .search-result {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            max-width: 500px;
+            width: 100%;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .search-result.show {
+            display: block;
+        }
+
+        .search-result-title {
+            font-size: 22px;
+            color: #333;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px dashed #eee;
+        }
+
+        .search-empty {
+            font-size: 16px;
+            color: #F44336;
+            text-align: center;
+            padding: 20px 0;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px dashed #eee;
+        }
+
+        .stats span {
+            font-size: 18px;
+            color: #555;
+        }
+
+        .mastered {
+            color: #4CAF50;
+            font-weight: bold;
+        }
+
+        .complete-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 999;
+            display: none;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 16px;
+            padding: 40px;
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+        }
+
+        .modal-title {
+            font-size: 28px;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .stats-item {
+            font-size: 20px;
+            margin: 10px 0;
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .stats-label {
+            color: #666;
+        }
+
+        .stats-value {
+            font-weight: bold;
+        }
+
+        .correct-count {
+            color: #4CAF50;
+        }
+
+        .wrong-count {
+            color: #F44336;
+        }
+
+        .accuracy {
+            font-size: 24px;
+            margin: 20px 0;
+            color: #2196F3;
+            font-weight: bold;
+        }
+
+        .btn-restart {
+            background: #ff9e80;
+            color: white;
+            margin-top: 20px;
+            padding: 12px 30px;
+            font-size: 20px;
+        }
+
+        .btn-reset {
+            background: #9C27B0;
+            color: white;
+            margin-top: 10px;
+        }
+    </style>
+    <!-- 引入PDF解析库 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+    <!-- 引入Word解析库 -->
+    <script src="https://unpkg.com/docx@8.5.0/build/index.umd.min.js"></script>
+</head>
+<body>
+    <div class="upload-area">
+        <div class="upload-title">📤 上传自定义成语库（支持TXT/Word/PDF）</div>
+        <div class="upload-btn-wrapper">
+            <button class="btn-upload">选择文件</button>
+            <input type="file" id="file-upload" accept=".txt,.docx,.pdf">
+        </div>
+        <div class="batch-info" id="batch-info">当前批次：1/1 | 每批15个成语</div>
+        <div class="file-info" id="file-info"></div>
+        <button class="btn btn-reset" id="reset-btn">使用默认成语库</button>
+        <div class="upload-tip">
+            📝 文件格式要求：每行一个成语，格式为【拼音 成语 解释】<br>
+            示例：shǒu zhū dài tù 守株待兔 比喻不主动努力...<br>
+            支持 .txt/.docx/.pdf 格式，编码为 UTF-8
+        </div>
+    </div>
+
+    <div class="search-area">
+        <input type="text" class="search-input" id="search-input" placeholder="输入成语查意思（如：守株待兔）">
+        <button class="btn-search" id="search-btn">搜索</button>
+    </div>
+
+    <div class="search-result" id="search-result">
+        <div class="search-result-title" id="search-idiom">搜索结果：守株待兔</div>
+        <div class="meaning-area" id="search-meaning">
+            <div class="meaning-title">成语释义</div>
+            <div class="meaning-content show">
+                <span class="meaning-text" id="search-explain">比喻不主动地努力，而存万一的侥幸心理，希望得到意外的收获。也指死守旧经验，不知变通。</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="stats">
+            <span>进度: <span id="progress">1/15</span></span>
+            <span>已学习: <span id="mastered" class="mastered">0</span></span>
+        </div>
+
+        <div class="idiom-wrap">
+            <div class="idiom" id="current-idiom">守株待兔</div>
+            <button class="audio-btn" id="audio-btn" title="播放读音">🔊</button>
+        </div>
+        <div class="idiom-pinyin" id="current-pinyin">shǒu zhū dài tù</div>
+
+        <div class="btn-group">
+            <button class="btn btn-show-meaning" id="show-meaning-btn">显示释义</button>
+            <button class="btn btn-next" id="next-btn">下一个成语</button>
+        </div>
+
+        <div class="meaning-area" id="current-meaning">
+            <div class="meaning-title">成语释义</div>
+            <div class="meaning-content" id="meaning-content">
+                <span class="meaning-text" id="meaning-explain">比喻不主动地努力，而存万一的侥幸心理，希望得到意外的收获。也指死守旧经验，不知变通。</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="complete-modal" id="complete-modal">
+        <div class="modal-content">
+            <div class="modal-title" id="modal-title">🎉 第1批成语学习完成！</div>
+            <div class="stats-item">
+                <span class="stats-label">本批总数：</span>
+                <span class="stats-value" id="batch-total-count">15</span>
+            </div>
+            <div class="stats-item">
+                <span class="stats-label">已学习：</span>
+                <span class="stats-value correct-count" id="batch-mastered-count">0</span>
+            </div>
+            <div class="accuracy" id="batch-accuracy">学习完成率：0%</div>
+            <button class="btn btn-continue" id="continue-btn" style="display: none;">继续下一批</button>
+            <button class="btn btn-restart" id="restart-btn">重新学习</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const defaultIdiomList = [
+                { pinyin: "shǒu zhū dài tù", char: "守株待兔", explain: "比喻不主动地努力，而存万一的侥幸心理，希望得到意外的收获。也指死守旧经验，不知变通。" },
+                { pinyin: "làn yú chōng shù", char: "滥竽充数", explain: "比喻没有本领的人冒充有本领，占着位置，或拿次的东西混在好的里面充数。" },
+                { pinyin: "kè zhōu qiú jiàn", char: "刻舟求剑", explain: "比喻拘泥成例，不知道跟着情势的变化而改变看法或办法。" },
+                { pinyin: "huà shé tiān zú", char: "画蛇添足", explain: "比喻做多余的事，反而不恰当。" },
+                { pinyin: "zhēng lún jiǎo biàn", char: "争论辩驳", explain: "指双方或多方就某个问题展开激烈的讨论和辩解，试图说服对方。" },
+                { pinyin: "hóng yán bǐng xìng", char: "红颜薄命", explain: "指女子容貌美丽但命运不好。" },
+                { pinyin: "bō lán zhuàng kuò", char: "波澜壮阔", explain: "形容声势雄壮浩大（多用于诗文、群众运动等）。" },
+                { pinyin: "rú huǒ rú tú", char: "如火如荼", explain: "形容气势旺盛、热烈或激烈。" },
+                { pinyin: "jǐng jǐng yǒu tiáo", char: "井井有条", explain: "形容条理分明，整齐有序。" },
+                { pinyin: "mǎn fù jīng lún", char: "满腹经纶", explain: "形容人很有学问和才能。" },
+                { pinyin: "yǔ wú lún cì", char: "语无伦次", explain: "说话没有条理、层次，讲得乱七八糟。" },
+                { pinyin: "hú lún tūn zǎo", char: "囫囵吞枣", explain: "把枣儿整个儿吞下去，比喻读书等不加分析地笼统接受。" },
+                { pinyin: "tiān lún zhī lè", char: "天伦之乐", explain: "指家庭中亲人团聚的快乐。" },
+                { pinyin: "qīng gē màn wǔ", char: "轻歌曼舞", explain: "轻松愉快的音乐，柔和优美的舞蹈。" },
+                { pinyin: "màn bù jīng xīn", char: "漫不经心", explain: "随随便便，不放在心上。" }
+            ];
+
+            // 全局已学习成语记录数组
+            let learnedIdioms = [];
+            let fullIdiomList = [...defaultIdiomList];
+            let currentBatchIdioms = [];
+            let currentBatch = 1;
+            let totalBatch = 1;
+            const batchSize = 15;
+
+            let currentIndex = 0;
+            let masteredCount = 0;
+            let currentIdiom = {};
+            let isMeaningShown = false;
+
+            const fileUpload = document.getElementById('file-upload');
+            const fileInfo = document.getElementById('file-info');
+            const batchInfo = document.getElementById('batch-info');
+            const resetBtn = document.getElementById('reset-btn');
+            const searchInputEl = document.getElementById('search-input');
+            const searchBtnEl = document.getElementById('search-btn');
+            const searchResultEl = document.getElementById('search-result');
+            const searchIdiomEl = document.getElementById('search-idiom');
+            const searchExplainEl = document.getElementById('search-explain');
+            const currentIdiomEl = document.getElementById('current-idiom');
+            const currentPinyinEl = document.getElementById('current-pinyin');
+            const audioBtn = document.getElementById('audio-btn');
+            const showMeaningBtn = document.getElementById('show-meaning-btn');
+            const nextBtn = document.getElementById('next-btn');
+            const meaningContent = document.getElementById('meaning-content');
+            const meaningExplainEl = document.getElementById('meaning-explain');
+            const progressEl = document.getElementById('progress');
+            const masteredEl = document.getElementById('mastered');
+            const completeModal = document.getElementById('complete-modal');
+            const modalTitle = document.getElementById('modal-title');
+            const batchTotalCount = document.getElementById('batch-total-count');
+            const batchMasteredCount = document.getElementById('batch-mastered-count');
+            const batchAccuracy = document.getElementById('batch-accuracy');
+            const continueBtn = document.getElementById('continue-btn');
+            const restartBtn = document.getElementById('restart-btn');
+
+            // 配置pdf.js
+            pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+
+            // 解析TXT文件
+            function parseTxtFile(file) {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => resolve(e.target.result);
+                    reader.onerror = reject;
+                    reader.readAsText(file, 'UTF-8');
+                });
+            }
+
+            // 解析PDF文件
+            function parsePdfFile(file) {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = async (e) => {
+                        try {
+                            const pdf = await pdfjsLib.getDocument({ data: e.target.result }).promise;
+                            let text = '';
+                            for (let i = 1; i <= pdf.numPages; i++) {
+                                const page = await pdf.getPage(i);
+                                const content = await page.getTextContent();
+                                content.items.forEach(item => text += item.str + '\n');
+                            }
+                            resolve(text);
+                        } catch (err) {
+                            reject(err);
+                        }
+                    };
+                    reader.onerror = reject;
+                    reader.readAsArrayBuffer(file);
+                });
+            }
+
+            // 解析Word文件
+            function parseDocxFile(file) {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = async (e) => {
+                        try {
+                            const doc = new window.docx.Document(e.target.result);
+                            const text = await window.docx.Document.getText(doc);
+                            resolve(text);
+                        } catch (err) {
+                            reject(err);
+                        }
+                    };
+                    reader.onerror = reject;
+                    reader.readAsArrayBuffer(file);
+                });
+            }
+
+            // 统一解析文件并提取成语
+            async function parseFileToIdioms(file) {
+                let text = '';
+                const ext = file.name.split('.').pop().toLowerCase();
+                try {
+                    switch (ext) {
+                        case 'txt':
+                            text = await parseTxtFile(file);
+                            break;
+                        case 'pdf':
+                            text = await parsePdfFile(file);
+                            break;
+                        case 'docx':
+                            text = await parseDocxFile(file);
+                            break;
+                        default:
+                            throw new Error('不支持的文件格式');
+                    }
+                    // 解析文本为成语列表
+                    const lines = text.split('\n').filter(line => line.trim());
+                    const idiomList = [];
+                    lines.forEach((line, index) => {
+                        const trimmedLine = line.trim();
+                        const parts = trimmedLine.split(/ (?=(?:[^"]*"[^"]*")*[^"]*$)/);
+                        if (parts.length >= 3) {
+                            idiomList.push({ pinyin: parts[0].trim(), char: parts[1].trim(), explain: parts[2].trim() });
+                        } else {
+                            console.warn(`第${index+1}行格式错误，已跳过`);
+                        }
+                    });
+                    return idiomList;
+                } catch (err) {
+                    throw err;
+                }
+            }
+
+            // 修复后的语音播放函数
+            function speakIdiom() {
+                // 检查浏览器是否支持Web Speech API
+                if (!('speechSynthesis' in window)) {
+                    alert('您的浏览器不支持语音合成功能，请使用Chrome/Edge等现代浏览器');
+                    return;
+                }
+                window.speechSynthesis.cancel(); // 停止之前的语音
+                const synth = window.speechSynthesis;
+                let voices = synth.getVoices();
+                // 语音未加载则等待并提示
+                if (voices.length === 0) {
+                    alert('语音库正在加载，请稍等片刻后重试');
+                    // 监听语音加载完成事件
+                    synth.onvoiceschanged = () => {
+                        voices = synth.getVoices();
+                        doSpeak(currentIdiom.char);
+                    };
+                    return;
+                }
+                doSpeak(currentIdiom.char);
+            }
+
+            // 核心语音合成函数
+            function doSpeak(text) {
+                const synth = window.speechSynthesis;
+                const voices = synth.getVoices();
+                // 优先匹配中文普通话语音
+                const mandarinVoice = voices.find(voice => 
+                    (voice.name.includes('普通话') || voice.name.includes('Mandarin')) && voice.lang === 'zh-CN'
+                );
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'zh-CN';
+                utterance.rate = 0.7;
+                utterance.pitch = 1.0;
+                utterance.volume = 1.0;
+                if (mandarinVoice) {
+                    utterance.voice = mandarinVoice;
+                } else if (voices.length > 0) {
+                    // 无中文语音时降级使用其他可用语音
+                    utterance.voice = voices[0];
+                }
+                // 添加错误处理
+                utterance.onerror = (event) => {
+                    console.error('语音合成失败:', event.error);
+                    alert(`语音合成失败：${event.error === 'synthesis-unavailable' ? '无可用语音引擎' : event.error}`);
+                };
+                synth.speak(utterance);
+            }
+
+            function showIdiomMeaning() {
+                if (isMeaningShown) return;
+                const explainText = currentIdiom.explain || '暂无详细解释';
+                meaningExplainEl.textContent = explainText;
+                meaningContent.classList.add('show');
+                isMeaningShown = true;
+                masteredCount++;
+                masteredEl.textContent = masteredCount;
+                nextBtn.classList.add('enabled');
+                
+                // 将当前成语加入已学习记录（去重）
+                if (!learnedIdioms.some(item => item.char === currentIdiom.char)) {
+                    learnedIdioms.push(currentIdiom);
+                }
+            }
+
+            // 搜索功能：优先匹配已学习记录
+            function searchIdiom() {
+                const searchText = searchInputEl.value.trim();
+                if (!searchText) {
+                    alert('请输入成语！');
+                    return;
+                }
+
+                let matchedIdiom = learnedIdioms.find(idiom => idiom.char.includes(searchText));
+                if (!matchedIdiom) {
+                    matchedIdiom = fullIdiomList.find(idiom => idiom.char.includes(searchText));
+                }
+
+                if (matchedIdiom) {
+                    searchResultEl.classList.add('show');
+                    searchIdiomEl.textContent = `搜索结果：${matchedIdiom.char}`;
+                    searchExplainEl.textContent = matchedIdiom.explain || '暂无解释';
+                } else {
+                    searchResultEl.classList.add('show');
+                    searchIdiomEl.textContent = `搜索结果：未找到“${searchText}”`;
+                    searchExplainEl.innerHTML = '<div class="search-empty">暂无该成语数据</div>';
+                }
+                searchInputEl.value = '';
+            }
+
+            function calculateTotalBatch() {
+                totalBatch = Math.ceil(fullIdiomList.length / batchSize);
+            }
+
+            function getBatchIdioms(batchNum) {
+                const startIndex = (batchNum - 1) * batchSize;
+                const endIndex = startIndex + batchSize;
+                return fullIdiomList.slice(startIndex, endIndex);
+            }
+
+            function updateBatchInfo() {
+                batchInfo.textContent = `当前批次：${currentBatch}/${totalBatch} | 每批${batchSize}个成语`;
+                progressEl.textContent = `${currentIndex + 1}/${currentBatchIdioms.length}`;
+            }
+
+            // 监听文件上传
+            fileUpload.addEventListener('change', async function(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+                try {
+                    const idiomList = await parseFileToIdioms(file);
+                    if (idiomList.length === 0) {
+                        fileInfo.textContent = '❌ 文件中未解析到有效成语！';
+                        fileInfo.style.color = '#F44336';
+                        return;
+                    }
+                    fullIdiomList = [...idiomList];
+                    calculateTotalBatch();
+                    currentBatch = 1;
+                    currentBatchIdioms = getBatchIdioms(currentBatch);
+                    fileInfo.textContent = `✅ 成功导入 ${idiomList.length} 个成语`;
+                    fileInfo.style.color = '#4CAF50';
+                    initGame();
+                } catch (err) {
+                    fileInfo.textContent = `❌ 文件解析失败：${err.message}`;
+                    fileInfo.style.color = '#F44336';
+                }
+            });
+
+            resetBtn.addEventListener('click', function() {
+                fullIdiomList = [...defaultIdiomList];
+                learnedIdioms = []; 
+                calculateTotalBatch();
+                currentBatch = 1;
+                currentBatchIdioms = getBatchIdioms(currentBatch);
+                fileInfo.textContent = `✅ 已切换为默认成语库`;
+                initGame();
+            });
+
+            function initGame() {
+                masteredCount = 0;
+                currentIndex = 0;
+                isMeaningShown = false;
+                currentBatchIdioms = currentBatchIdioms.length > 0 ? currentBatchIdioms : getBatchIdioms(currentBatch);
+                currentIdiom = currentBatchIdioms[currentIndex] || currentBatchIdioms[0];
+                updateIdiomDisplay();
+                updateBatchInfo();
+                clearMeaningContent();
+                nextBtn.classList.remove('enabled');
+                completeModal.style.display = 'none';
+                searchResultEl.classList.remove('show');
+            }
+
+            function updateIdiomDisplay() {
+                currentIdiom = currentBatchIdioms[currentIndex] || currentBatchIdioms[0];
+                currentIdiomEl.textContent = currentIdiom.char;
+                currentPinyinEl.textContent = currentIdiom.pinyin;
+            }
+
+            function clearMeaningContent() {
+                meaningContent.classList.remove('show');
+                meaningExplainEl.textContent = '';
+                isMeaningShown = false;
+                masteredEl.textContent = masteredCount;
+            }
+
+            function nextIdiom() {
+                if (!isMeaningShown) return;
+                if (currentIndex + 1 >= currentBatchIdioms.length) {
+                    showCompleteModal();
+                    return;
+                }
+                currentIndex++;
+                updateIdiomDisplay();
+                clearMeaningContent();
+                nextBtn.classList.remove('enabled');
+                searchResultEl.classList.remove('show');
+            }
+
+            function showCompleteModal() {
+                modalTitle.textContent = `🎉 第${currentBatch}批成语学习完成！`;
+                batchTotalCount.textContent = currentBatchIdioms.length;
+                batchMasteredCount.textContent = masteredCount;
+                const completionRate = currentBatchIdioms.length > 0 ? Math.round((masteredCount / currentBatchIdioms.length) * 100) : 0;
+                batchAccuracy.textContent = `学习完成率：${completionRate}%`;
+                continueBtn.style.display = currentBatch < totalBatch ? 'inline-block' : 'none';
+                completeModal.style.display = 'flex';
+            }
+
+            function goToNextBatch() {
+                currentBatch++;
+                currentBatchIdioms = getBatchIdioms(currentBatch);
+                initGame();
+            }
+
+            searchBtnEl.addEventListener('click', searchIdiom);
+            searchInputEl.addEventListener('keydown', (e) => { if (e.key === 'Enter') searchIdiom(); });
+            showMeaningBtn.addEventListener('click', showIdiomMeaning);
+            nextBtn.addEventListener('click', nextIdiom);
+            audioBtn.addEventListener('click', speakIdiom);
+            restartBtn.addEventListener('click', initGame);
+            continueBtn.addEventListener('click', function() {
+                completeModal.style.display = 'none';
+                goToNextBatch();
+            });
+
+            // 初始化
+            calculateTotalBatch();
+            currentBatchIdioms = getBatchIdioms(currentBatch);
+            initGame();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>错题本</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft YaHei", "SimSun", sans-serif;
+        }
+
+        body {
+            background: #f5f1e6;
+            padding: 30px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 100%;
+        }
+
+        /* 标题区域 */
+        .title-area {
+            background: white;
+            border-radius: 16px;
+            padding: 25px 30px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .main-title {
+            font-size: 24px;
+            color: #2d3748;
+            font-weight: bold;
+        }
+
+        .subtitle {
+            font-size: 14px;
+            color: #718096;
+            margin-top: 8px;
+        }
+
+        /* 自动同步提示 */
+        .sync-tip {
+            background: #e8f4f8;
+            border: 1px solid #2196F3;
+            border-radius: 8px;
+            padding: 10px 15px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            color: #2d3748;
+            text-align: center;
+        }
+
+        /* 添加错题区域 - 最终优化版 */
+        .add-area {
+            background: white;
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .add-title {
+            font-size: 18px;
+            color: #2d3748;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .form-item {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        /* 表单字体放大到16px */
+        .form-label {
+            font-size: 16px;
+            color: #4a5568;
+            font-weight: 500;
+        }
+
+        /* 放大分类选择框 */
+        .form-select-big {
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            outline: none;
+            width: 100%;
+            height: 50px;
+        }
+
+        .form-select-big:focus {
+            border-color: #2196F3;
+            box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.2);
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 120px;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            outline: none;
+        }
+
+        .form-textarea:focus {
+            border-color: #2196F3;
+            box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.2);
+        }
+
+        .add-btn {
+            padding: 12px 25px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .add-btn:hover {
+            background-color: #388E3C;
+        }
+
+        /* 错题列表区域 */
+        .list-area {
+            background: white;
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .list-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .list-title {
+            font-size: 18px;
+            color: #2d3748;
+            font-weight: bold;
+        }
+
+        /* 优化筛选框尺寸，更协调 */
+        .filter-select {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            width: 140px;
+        }
+
+        .empty-tip {
+            text-align: center;
+            font-size: 16px;
+            color: #718096;
+            padding: 40px 0;
+        }
+
+        .error-item {
+            padding: 15px;
+            border-bottom: 1px dashed #eee;
+            margin-bottom: 10px;
+        }
+
+        .item-top {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .item-type {
+            font-size: 12px;
+            padding: 2px 8px;
+            border-radius: 4px;
+            color: white;
+        }
+
+        .type-yinyun { background-color: #4CAF50; }
+        .type-zixing { background-color: #2196F3; }
+        .type-gushi { background-color: #9C27B0; }
+        .type-chengyu { background-color: #FF9800; }
+        .type-wenyan { background-color: #F44336; }
+        .type-changshi { background-color: #00BCD4; }
+
+        .item-delete {
+            font-size: 12px;
+            color: #F44336;
+            cursor: pointer;
+        }
+
+        .item-word {
+            font-size: 16px;
+            color: #2d3748;
+            font-weight: 500;
+            margin-bottom: 5px;
+        }
+
+        .item-error {
+            font-size: 14px;
+            color: #F44336;
+            margin-bottom: 5px;
+        }
+
+        .item-correct {
+            font-size: 14px;
+            color: #4CAF50;
+            margin-bottom: 5px;
+        }
+
+        .item-note {
+            font-size: 12px;
+            color: #718096;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 标题区域 -->
+        <div class="title-area">
+            <h1 class="main-title">语文错题本</h1>
+            <p class="subtitle">自动同步做题错误，查漏补缺更高效</p >
+        </div>
+
+        <!-- 自动同步提示 -->
+        <div class="sync-tip">
+            📌 其他工具答题错误后会自动推送至此，无需手动录入！
+        </div>
+
+        <!-- 添加错题区域 - 最终优化版 -->
+        <div class="add-area">
+            <h2 class="add-title">📝 手动添加新错题</h2>
+            <div class="form-group">
+                <div class="form-item">
+                    <label class="form-label">错题分类</label>
+                    <!-- 删除默认占位项，默认选中字音 -->
+                    <select class="form-select-big" id="error-type">
+                        <option value="yinyun" selected>字音</option>
+                        <option value="zixing">字形</option>
+                        <option value="gushi">古诗词</option>
+                        <option value="chengyu">成语</option>
+                        <option value="wenyan">文言文</option>
+                        <option value="changshi">文学常识</option>
+                    </select>
+                </div>
+                <div class="form-item">
+                    <label class="form-label">错题详情</label>
+                    <textarea class="form-textarea" id="error-detail" placeholder="例：参差不齐 - 错误读音cēn chā - 正确读音cēn cī bù qí - 记忆技巧：注意“参差”为叠韵词，读音特殊"></textarea>
+                </div>
+            </div>
+            <button class="add-btn" id="add-btn">添加到错题本</button>
+        </div>
+
+        <!-- 错题列表区域 -->
+        <div class="list-area">
+            <div class="list-header">
+                <h2 class="list-title">📚 我的错题集</h2>
+                <!-- 优化后的筛选框 -->
+                <select class="filter-select" id="filter-select">
+                    <option value="all">全部分类</option>
+                    <option value="yinyun">字音</option>
+                    <option value="zixing">字形</option>
+                    <option value="gushi">古诗词</option>
+                    <option value="chengyu">成语</option>
+                    <option value="wenyan">文言文</option>
+                    <option value="changshi">文学常识</option>
+                </select>
+            </div>
+            <div id="error-list">
+                <div class="empty-tip">暂无错题，开始你的练习吧！</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 从本地存储获取错题数据
+        let errorList = JSON.parse(localStorage.getItem('chineseErrorList')) || [];
+        const errorListDom = document.getElementById('error-list');
+
+        // 页面加载时渲染错题列表 + 监听其他工具的错题推送
+        window.onload = function() {
+            renderErrorList(errorList);
+            // 监听来自其他工具的错题消息
+            window.addEventListener('message', function(e) {
+                if (e.data.type === 'addError') {
+                    addErrorFromTool(e.data.data);
+                }
+            });
+        }
+
+        // 手动添加错题 - 最终优化版
+        document.getElementById('add-btn').addEventListener('click', function() {
+            const type = document.getElementById('error-type').value;
+            const detail = document.getElementById('error-detail').value.trim();
+
+            // 校验必填项
+            if (!detail) {
+                alert('请填写错题详情！');
+                return;
+            }
+
+            // 从详情中拆分内容（按用户输入格式）
+            const errorItem = {
+                id: Date.now(),
+                word: detail.split('-')[0]?.trim() || '自定义错题',
+                error: detail.split('-')[1]?.trim() || '无',
+                correct: detail.split('-')[2]?.trim() || '无',
+                type: type,
+                note: detail.split('-')[3]?.trim() || '手动添加错题'
+            };
+
+            addErrorItem(errorItem);
+            // 清空表单
+            document.getElementById('error-detail').value = '';
+
+            alert('错题添加成功！');
+        });
+
+        // 筛选分类事件
+        document.getElementById('filter-select').addEventListener('change', function() {
+            const type = this.value;
+            let filteredList = errorList;
+            if (type !== 'all') {
+                filteredList = errorList.filter(item => item.type === type);
+            }
+            renderErrorList(filteredList);
+        });
+
+        // 接收其他工具的错题数据
+        function addErrorFromTool(toolErrorData) {
+            const errorItem = {
+                id: Date.now(),
+                word: toolErrorData.word,
+                error: toolErrorData.error,
+                correct: toolErrorData.correct,
+                type: toolErrorData.type,
+                note: toolErrorData.note || '自动同步错题'
+            };
+            addErrorItem(errorItem);
+        }
+
+        // 添加错题到列表并保存
+        function addErrorItem(item) {
+            errorList.unshift(item);
+            localStorage.setItem('chineseErrorList', JSON.stringify(errorList));
+            renderErrorList(errorList);
+        }
+
+        // 渲染错题列表
+        function renderErrorList(list) {
+            if (list.length === 0) {
+                errorListDom.innerHTML = '<div class="empty-tip">暂无错题，开始你的练习吧！</div>';
+                return;
+            }
+
+            let html = '';
+            list.forEach(item => {
+                html += `
+                    <div class="error-item" data-id="${item.id}">
+                        <div class="item-top">
+                            <span class="item-type type-${item.type}">${getTypeName(item.type)}</span>
+                            <span class="item-delete" onclick="deleteError(${item.id})">删除</span>
+                        </div>
+                        <div class="item-word">${item.word}</div>
+                        <div class="item-error">错误：${item.error}</div>
+                        <div class="item-correct">正确：${item.correct}</div>
+                        <div class="item-note">备注：${item.note || '无'}</div>
+                    </div>
+                `;
+            });
+            errorListDom.innerHTML = html;
+        }
+
+        // 根据类型值获取类型名称
+        function getTypeName(type) {
+            const typeMap = {
+                yinyun: '字音',
+                zixing: '字形',
+                gushi: '古诗词',
+                chengyu: '成语',
+                wenyan: '文言文',
+                changshi: '文学常识'
+            };
+            return typeMap[type] || type;
+        }
+
+        // 删除错题
+        window.deleteError = function(id) {
+            if (confirm('确定要删除这道错题吗？')) {
+                errorList = errorList.filter(item => item.id !== id);
+                localStorage.setItem('chineseErrorList', JSON.stringify(errorList));
+                renderErrorList(errorList);
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>古诗词学习卡</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft YaHei", "SimSun", sans-serif;
+        }
+
+        body {
+            background: #f5f1e6;
+            padding: 30px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* 上传区域样式 */
+        .upload-area {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            max-width: 800px;
+            width: 100%;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .upload-title {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .upload-btn-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+            margin-bottom: 15px;
+        }
+
+        .btn-upload {
+            border: 2px dashed #2196F3;
+            color: #2196F3;
+            background-color: white;
+            padding: 8px 20px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .upload-btn-wrapper input[type=file] {
+            font-size: 100px;
+            position: absolute;
+            left: 0;
+            top: 0;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        /* 按钮组：并排展示 */
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin: 10px 0;
+        }
+
+        .btn-common {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            color: white;
+        }
+
+        .btn-library {
+            background-color: #9C27B0;
+        }
+
+        .btn-library:hover {
+            background-color: #7b1fa2;
+        }
+
+        .btn-default {
+            background-color: #4CAF50;
+        }
+
+        .btn-default:hover {
+            background-color: #388E3C;
+        }
+
+        /* 中间搜索栏样式 - 加高输入框 + 联想下拉容器（修正对齐） */
+        .middle-search-area {
+            max-width: 800px;
+            width: 100%;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            align-items: flex-start;
+            margin: 10px 0;
+            position: relative;
+        }
+
+        .middle-search-input {
+            width: 450px;
+            padding: 16px 18px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 15px;
+            outline: none;
+            transition: border-color 0.3s;
+            line-height: 1.5;
+        }
+
+        .middle-search-input:focus {
+            border-color: #2196F3;
+            box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.2);
+        }
+
+        .middle-search-btn {
+            padding: 16px 20px;
+            background-color: #2196F3;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin-top: 1px;
+        }
+
+        .middle-search-btn:hover {
+            background-color: #1976D2;
+        }
+
+        /* 清空按钮 - 高度同步 */
+        .middle-clear-btn {
+            padding: 16px 16px;
+            background-color: #F44336;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin-top: 1px;
+        }
+
+        .middle-clear-btn:hover {
+            background-color: #D32F2F;
+        }
+
+        /* 搜索联想下拉列表样式（修正定位对齐） */
+        .search-suggestion {
+            position: absolute;
+            top: 100%;
+            left: calc((100% - 450px - 20px - 120px - 10px) / 2); /* 精准计算左侧偏移量 */
+            width: 450px;
+            background: white;
+            border: 1px solid #ddd;
+            border-top: none;
+            border-radius: 0 0 8px 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            z-index: 100;
+            max-height: 200px;
+            overflow-y: auto;
+            display: none;
+        }
+
+        .suggestion-item {
+            padding: 10px 18px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .suggestion-item:hover {
+            background-color: #e8f4f8;
+        }
+
+        .suggestion-item.active {
+            background-color: #f0f8fb;
+            color: #2196F3;
+        }
+
+        .search-tip {
+            font-size: 13px;
+            color: #666;
+            margin: 5px 0;
+            text-align: center;
+        }
+
+        /* 格式提示 */
+        .upload-tip {
+            font-size: 14px;
+            color: #666;
+            line-height: 1.8;
+            background-color: #f0f8fb;
+            padding: 10px;
+            border-radius: 8px;
+        }
+
+        .file-info {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #4CAF50;
+            font-weight: bold;
+        }
+
+        /* 文库列表样式 */
+        .library-list {
+            max-width: 800px;
+            width: 100%;
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            margin: 10px 0;
+            display: none;
+        }
+
+        .library-title {
+            font-size: 16px;
+            color: #2d3748;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .library-item {
+            padding: 8px 12px;
+            margin: 5px 0;
+            background: #f5f5f5;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .library-item:hover {
+            background-color: #e8f4f8;
+        }
+
+        /* 古诗词容器 */
+        .poem-container {
+            background: white;
+            border-radius: 16px;
+            padding: 40px 30px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            max-width: 800px;
+            width: 100%;
+            margin-top: 10px;
+            position: relative;
+        }
+
+        /* 标题区域样式 */
+        .title-section {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #e8f4f8;
+            padding-bottom: 15px;
+        }
+
+        .poem-title {
+            font-size: 32px;
+            color: #2d3748;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .poem-meta {
+            font-size: 18px;
+            color: #718096;
+            font-style: italic;
+        }
+
+        /* 批量操作按钮 - 角落低调样式 */
+        .batch-btn-group {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 8px;
+        }
+
+        .batch-btn {
+            padding: 4px 10px;
+            border: 1px solid #ddd;
+            background-color: #fafafa;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: #666;
+        }
+
+        .batch-btn:hover {
+            background-color: #e8f4f8;
+            border-color: #2196F3;
+            color: #2196F3;
+        }
+
+        /* 诗句列表 */
+        .verse-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        /* 诗句样式 */
+        .verse-item {
+            cursor: pointer;
+            font-size: 22px;
+            color: #2d3748;
+            line-height: 1.8;
+            padding: 12px 15px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .verse-item:hover {
+            background-color: #e8f4f8;
+        }
+
+        .verse-item.active {
+            background-color: #f0f8fb;
+            border-left: 4px solid #2196F3;
+        }
+
+        /* 逐句释义样式 */
+        .meaning-item {
+            background: #f8f8f8;
+            border-radius: 8px;
+            padding: 12px 20px;
+            margin-bottom: 15px;
+            font-size: 16px;
+            color: #4a5568;
+            line-height: 1.8;
+            display: none;
+            animation: fadeIn 0.3s ease-in-out;
+            text-align: center;
+        }
+
+        .meaning-item.show {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* 空数据提示 */
+        .empty-tip {
+            text-align: center;
+            font-size: 18px;
+            color: #718096;
+            padding: 50px 0;
+        }
+    </style>
+</head>
+<body>
+    <!-- 上传区域 -->
+    <div class="upload-area">
+        <div class="upload-title">📤 上传自定义古诗词（支持单首/多首，多格式）</div>
+        <div class="upload-btn-wrapper">
+            <button class="btn-upload">选择文件</button>
+            <input type="file" id="file-upload" accept=".txt,.doc,.docx,.pdf,.rtf">
+        </div>
+
+        <!-- 按钮组：显示文库列表 + 使用默认古诗词 并排 -->
+        <div class="btn-group">
+            <button class="btn-common btn-library" id="library-toggle-btn">📚 显示文库列表</button>
+            <button class="btn-common btn-default" id="reset-btn">📖 使用默认古诗词</button>
+        </div>
+
+        <!-- 格式提示 -->
+        <div class="upload-tip">
+            📝 <strong>【必看】文件格式要求（单首/多首通用）</strong><br>
+            1. 单首：标题行 → 年代作者行 → 诗句+释义逐行交替<br>
+            2. 多首：每首按单首格式书写，<strong>首与首之间用3个及以上空行分隔</strong>
+        </div>
+
+        <div class="file-info" id="file-info"></div>
+    </div>
+
+    <!-- 中间搜索栏 + 联想下拉容器 -->
+    <div class="middle-search-area">
+        <input type="text" class="middle-search-input" id="middle-search-input" placeholder="输入标题搜索古诗词">
+        <button class="middle-search-btn" id="middle-search-btn">搜索</button>
+        <button class="middle-clear-btn" id="middle-clear-btn">清空</button>
+        <!-- 搜索联想下拉列表 -->
+        <div class="search-suggestion" id="search-suggestion"></div>
+    </div>
+    <div class="search-tip" id="middle-search-tip"></div>
+
+    <!-- 文库列表（点击显隐） -->
+    <div class="library-list" id="library-list">
+        <div class="library-title">已导入古诗词列表</div>
+        <div id="library-content"></div>
+    </div>
+
+    <!-- 古诗词展示容器 -->
+    <div class="poem-container" id="poem-container">
+        <div class="empty-tip" id="empty-tip">请上传古诗词文件或点击使用默认文本</div>
+    </div>
+
+    <!-- 第三方解析库 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/rtf.js/0.10.0/rtf.min.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 默认古诗词文库：四首经典篇目（内容源自古诗文网）
+            const defaultPoemLibrary = [
+                {
+                    title: "静夜思",
+                    meta: "唐 · 李白",
+                    verses: [
+                        "床前明月光，",
+                        "疑是地上霜。",
+                        "举头望明月，",
+                        "低头思故乡。"
+                    ],
+                    translations: [
+                        "明亮的月光洒在井栏上，",
+                        "好像地上泛起了一层白霜。",
+                        "我抬起头来，看那天窗外空中的明月，",
+                        "不由得低头沉思，想起远方的家乡。"
+                    ]
+                },
+                {
+                    title: "登高",
+                    meta: "唐 · 杜甫",
+                    verses: [
+                        "风急天高猿啸哀，渚清沙白鸟飞回。",
+                        "无边落木萧萧下，不尽长江滚滚来。",
+                        "万里悲秋常作客，百年多病独登台。",
+                        "艰难苦恨繁霜鬓，潦倒新停浊酒杯。"
+                    ],
+                    translations: [
+                        "风急天高猿猴啼叫显得十分悲哀，水清沙白的河洲上有鸟儿在盘旋。",
+                        "无边无际的树木萧萧地飘下落叶，望不到头的长江水滚滚奔腾而来。",
+                        "悲对秋景感慨万里漂泊常年为客，一生当中疾病缠身今日独上高台。",
+                        "历尽了艰难苦恨白发长满了双鬓，衰颓满心偏又暂停了浇愁的酒杯。"
+                    ]
+                },
+                {
+                    title: "水调歌头·明月几时有",
+                    meta: "宋 · 苏轼",
+                    verses: [
+                        "明月几时有？把酒问青天。",
+                        "不知天上宫阙，今夕是何年。",
+                        "我欲乘风归去，又恐琼楼玉宇，高处不胜寒。",
+                        "起舞弄清影，何似在人间。",
+                        "转朱阁，低绮户，照无眠。",
+                        "不应有恨，何事长向别时圆？",
+                        "人有悲欢离合，月有阴晴圆缺，此事古难全。",
+                        "但愿人长久，千里共婵娟。"
+                    ],
+                    translations: [
+                        "明月从什么时候才开始出现的？我端起酒杯遥问苍天。",
+                        "不知道在天上的宫殿，今天晚上是何年何月。",
+                        "我想要乘御清风回到天上，又恐怕在美玉砌成的楼宇，受不住高耸九天的寒冷。",
+                        "翩翩起舞玩赏着月下清影，哪里比得上人间的烟火气呢。",
+                        "月儿转过朱红色的楼阁，低低地挂在雕花的窗户上，照着没有睡意的自己。",
+                        "明月不该对人们有什么怨恨吧，为什么偏在人们离别时才圆呢？",
+                        "人有悲欢离合的变迁，月有阴晴圆缺的转换，这种事自古来难以周全。",
+                        "只希望这世上所有人的亲人能平安健康，即便相隔千里，也能共享这美好的月光。"
+                    ]
+                },
+                {
+                    title: "钱塘湖春行",
+                    meta: "唐 · 白居易",
+                    verses: [
+                        "孤山寺北贾亭西，水面初平云脚低。",
+                        "几处早莺争暖树，谁家新燕啄春泥。",
+                        "乱花渐欲迷人眼，浅草才能没马蹄。",
+                        "最爱湖东行不足，绿杨阴里白沙堤。"
+                    ],
+                    translations: [
+                        "从孤山寺的北面到贾亭的西面，湖面春水刚与堤平，白云低垂，同湖面上连成一片。",
+                        "几只早出的黄莺争相飞往向阳的树木，谁家新飞来的燕子忙着筑巢衔泥。",
+                        "纷繁的花朵渐渐开放使人眼花缭乱，浅浅的青草刚刚够上遮没马蹄。",
+                        "最爱的湖东美景百游不厌，杨柳成排绿荫中穿过一条白沙堤。"
+                    ]
+                }
+            ];
+
+            // 全局文库：初始化加载四首默认篇目
+            let poemLibrary = JSON.parse(JSON.stringify(defaultPoemLibrary));
+            let currentPoemData = null;
+            const fileUpload = document.getElementById('file-upload');
+            const fileInfo = document.getElementById('file-info');
+            const resetBtn = document.getElementById('reset-btn');
+            const poemContainer = document.getElementById('poem-container');
+            const emptyTip = document.getElementById('empty-tip');
+            const libraryToggleBtn = document.getElementById('library-toggle-btn');
+            const libraryList = document.getElementById('library-list');
+            const libraryContent = document.getElementById('library-content');
+            // 搜索栏元素 + 联想相关
+            const middleSearchInput = document.getElementById('middle-search-input');
+            const middleSearchBtn = document.getElementById('middle-search-btn');
+            const middleClearBtn = document.getElementById('middle-clear-btn');
+            const middleSearchTip = document.getElementById('middle-search-tip');
+            const searchSuggestion = document.getElementById('search-suggestion');
+            let currentSuggestIndex = -1;
+
+            // 初始化PDF.js
+            pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+
+            // 文库列表 点击显隐切换
+            libraryToggleBtn.addEventListener('click', function() {
+                if (libraryList.style.display === 'block') {
+                    libraryList.style.display = 'none';
+                    libraryToggleBtn.textContent = '📚 显示文库列表';
+                } else {
+                    libraryList.style.display = 'block';
+                    libraryToggleBtn.textContent = '📚 隐藏文库列表';
+                    updateLibraryList();
+                }
+            });
+
+            // 加载默认古诗词（默认显示第一篇《静夜思》）
+            resetBtn.addEventListener('click', function() {
+                renderPoem(defaultPoemLibrary[0]);
+                fileInfo.textContent = `✅ 已加载默认文库：${defaultPoemLibrary.map(item => item.title).join('、')}`;
+                middleSearchTip.textContent = "";
+            });
+
+            // ====== 搜索联想功能核心逻辑 ======
+            middleSearchInput.addEventListener('input', function() {
+                const keyword = this.value.trim();
+                searchSuggestion.innerHTML = '';
+                currentSuggestIndex = -1;
+
+                if (!keyword) {
+                    searchSuggestion.style.display = 'none';
+                    return;
+                }
+
+                // 匹配标题包含关键词的古诗词
+                const matched = poemLibrary.filter(item => 
+                    item.title.toLowerCase().includes(keyword.toLowerCase())
+                );
+
+                if (matched.length === 0) {
+                    searchSuggestion.style.display = 'none';
+                    return;
+                }
+
+                // 生成联想列表项
+                matched.forEach(item => {
+                    const div = document.createElement('div');
+                    div.className = 'suggestion-item';
+                    div.textContent = `${item.title}（${item.meta}）`;
+                    div.dataset.title = item.title;
+                    // 点击联想项填充输入框并搜索
+                    div.addEventListener('click', function() {
+                        middleSearchInput.value = this.dataset.title;
+                        searchSuggestion.style.display = 'none';
+                        middleSearchBtn.click();
+                    });
+                    searchSuggestion.appendChild(div);
+                });
+
+                searchSuggestion.style.display = 'block';
+            });
+
+            // 键盘上下键选择联想项
+            middleSearchInput.addEventListener('keydown', function(e) {
+                const items = searchSuggestion.querySelectorAll('.suggestion-item');
+                if (items.length === 0) return;
+
+                switch(e.key) {
+                    case 'ArrowDown':
+                        e.preventDefault();
+                        currentSuggestIndex = (currentSuggestIndex + 1) % items.length;
+                        highlightSuggestItem(items);
+                        break;
+                    case 'ArrowUp':
+                        e.preventDefault();
+                        currentSuggestIndex = (currentSuggestIndex - 1 + items.length) % items.length;
+                        highlightSuggestItem(items);
+                        break;
+                    case 'Enter':
+                        e.preventDefault();
+                        if (currentSuggestIndex >= 0 && currentSuggestIndex < items.length) {
+                            items[currentSuggestIndex].click();
+                        } else {
+                            middleSearchBtn.click();
+                        }
+                        break;
+                    case 'Escape':
+                        searchSuggestion.style.display = 'none';
+                        currentSuggestIndex = -1;
+                        break;
+                }
+            });
+
+            // 高亮选中的联想项
+            function highlightSuggestItem(items) {
+                items.forEach((item, index) => {
+                    if (index === currentSuggestIndex) {
+                        item.classList.add('active');
+                        // 滚动到可视区域
+                        item.scrollIntoView({ block: 'nearest' });
+                    } else {
+                        item.classList.remove('active');
+                    }
+                });
+            }
+
+            // 点击页面其他区域关闭联想列表
+            document.addEventListener('click', function(e) {
+                if (!middleSearchInput.contains(e.target) && !searchSuggestion.contains(e.target)) {
+                    searchSuggestion.style.display = 'none';
+                    currentSuggestIndex = -1;
+                }
+            });
+
+            // ====== 原有搜索功能 ======
+            middleSearchBtn.addEventListener('click', function() {
+                const keyword = middleSearchInput.value.trim();
+                if (!keyword) {
+                    middleSearchTip.textContent = "⚠️ 请输入古诗词标题关键词";
+                    middleSearchTip.style.color = "#F44336";
+                    return;
+                }
+
+                const matchedList = poemLibrary.filter(item => item.title.includes(keyword));
+                if (matchedList.length === 0) {
+                    middleSearchTip.textContent = `❌ 未找到包含「${keyword}」的古诗词`;
+                    middleSearchTip.style.color = "#F44336";
+                    poemContainer.innerHTML = `<div class="empty-tip">未找到匹配内容</div>`;
+                } else {
+                    middleSearchTip.textContent = `✅ 找到 ${matchedList.length} 首匹配的古诗词`;
+                    middleSearchTip.style.color = "#4CAF50";
+                    renderPoem(matchedList[0]);
+                    if (libraryList.style.display === 'block') {
+                        libraryContent.innerHTML = matchedList.map(item => 
+                            `<div class="library-item" onclick="renderPoem(${JSON.stringify(item).replace(/"/g, '&quot;')})">${item.title}（${item.meta}）</div>`
+                        ).join('');
+                    }
+                }
+                searchSuggestion.style.display = 'none';
+            });
+
+            // 清空按钮功能
+            middleClearBtn.addEventListener('click', function() {
+                middleSearchInput.value = "";
+                middleSearchTip.textContent = "";
+                searchSuggestion.style.display = 'none';
+                currentSuggestIndex = -1;
+                // 清空后恢复显示全部文库内容（若列表展开）
+                if (libraryList.style.display === 'block') {
+                    updateLibraryList();
+                }
+                // 恢复显示默认或最后查看的内容
+                if (currentPoemData) {
+                    renderPoem(currentPoemData);
+                } else {
+                    poemContainer.innerHTML = `<div class="empty-tip">请上传古诗词文件或点击使用默认文本</div>`;
+                }
+            });
+
+            // 回车触发搜索
+            middleSearchInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' && currentSuggestIndex === -1) {
+                    middleSearchBtn.click();
+                }
+            });
+
+            // 多首古诗词解析（按空行分隔）
+            fileUpload.addEventListener('change', async function(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                const fileName = file.name;
+                const fileExt = fileName.slice(fileName.lastIndexOf('.')).toLowerCase();
+                let textContent = '';
+
+                try {
+                    fileInfo.textContent = "⏳ 正在解析文件，请稍候...";
+                    fileInfo.style.color = '#2196F3';
+                    middleSearchTip.textContent = "";
+
+                    switch (fileExt) {
+                        case '.txt':
+                            textContent = await readTxtFile(file);
+                            break;
+                        case '.doc':
+                        case '.docx':
+                            textContent = await readDocFile(file);
+                            break;
+                        case '.pdf':
+                            textContent = await readPdfFile(file);
+                            break;
+                        case '.rtf':
+                            textContent = await readRtfFile(file);
+                            break;
+                        default:
+                            throw new Error("不支持的文件格式");
+                    }
+
+                    // 按3个及以上空行分割多首
+                    const multiPoem = textContent.split(/\n{3,}/).map(part => part.trim()).filter(part => part);
+                    if (multiPoem.length === 0) {
+                        throw new Error("文件内容为空！请按格式填写");
+                    }
+
+                    const importedList = [];
+                    for (const part of multiPoem) {
+                        const lines = part.split('\n').map(line => line.trim()).filter(line => line);
+                        if (lines.length < 5) continue; 
+
+                        const title = lines[0];
+                        const meta = lines[1];
+                        const contentLines = lines.slice(2);
+                        const verses = [];
+                        const translations = [];
+
+                        for (let i = 0; i < contentLines.length; i += 2) {
+                            if (i + 1 < contentLines.length) {
+                                verses.push(contentLines[i]);
+                                translations.push(contentLines[i + 1]);
+                            }
+                        }
+
+                        if (verses.length === 0 || verses.length !== translations.length) continue;
+
+                        const singleData = { title, meta, verses, translations };
+                        const existIndex = poemLibrary.findIndex(item => item.title === title);
+                        if (existIndex > -1) {
+                            poemLibrary[existIndex] = singleData;
+                        } else {
+                            poemLibrary.push(singleData);
+                        }
+                        importedList.push(title);
+                    }
+
+                    if (importedList.length === 0) {
+                        throw new Error("未解析到符合格式的古诗词！请检查文件内容");
+                    }
+
+                    renderPoem(poemLibrary.find(item => item.title === importedList[0]));
+                    fileInfo.textContent = `✅ 成功导入 ${importedList.length} 首古诗词：${importedList.join('、')}`;
+                    fileInfo.style.color = '#4CAF50';
+
+                } catch (error) {
+                    fileInfo.textContent = `❌ 解析失败：${error.message}`;
+                    fileInfo.style.color = '#F44336';
+                }
+            });
+
+            // 更新文库列表
+            function updateLibraryList() {
+                if (poemLibrary.length === 0) {
+                    libraryContent.innerHTML = '<div class="empty-tip">文库暂无内容</div>';
+                    return;
+                }
+                libraryContent.innerHTML = poemLibrary.map(item => 
+                    `<div class="library-item" onclick="renderPoem(${JSON.stringify(item).replace(/"/g, '&quot;')})">${item.title}（${item.meta}）</div>`
+                ).join('');
+            }
+
+            // 暴露全局方法供列表点击调用
+            window.renderPoem = renderPoem;
+
+            // 渲染单首古诗词
+            function renderPoem(data) {
+                currentPoemData = data;
+                emptyTip.style.display = 'none';
+
+                const titleHtml = `
+                    <div class="title-section">
+                        <h2 class="poem-title">${data.title}</h2>
+                        <p class="poem-meta">${data.meta}</p>
+                    </div>
+                `;
+
+                const batchBtnHtml = `
+                    <div class="batch-btn-group">
+                        <button class="batch-btn expand-all-btn" id="expand-all-btn">展开全部</button>
+                        <button class="batch-btn collapse-all-btn" id="collapse-all-btn">收起全部</button>
+                    </div>
+                `;
+
+                let verseHtml = '';
+                data.verses.forEach((verse, index) => {
+                    verseHtml += `
+                        <div class="verse-item" data-index="${index}">${verse}</div>
+                        <div class="meaning-item" id="meaning-${index}">${data.translations[index]}</div>
+                    `;
+                });
+
+                poemContainer.innerHTML = `${titleHtml}${batchBtnHtml}<div class="verse-list">${verseHtml}</div>`;
+                bindVerseEvents();
+                bindBatchBtnEvents();
+            }
+
+            // 绑定诗句点击显隐释义事件
+            function bindVerseEvents() {
+                const verseItems = document.querySelectorAll('.verse-item');
+                verseItems.forEach(item => {
+                    item.addEventListener('click', function() {
+                        const index = parseInt(this.dataset.index);
+                        const meaningItem = document.getElementById(`meaning-${index}`);
+                        const isActive = this.classList.contains('active');
+
+                        if (isActive) {
+                            this.classList.remove('active');
+                            meaningItem.classList.remove('show');
+                        } else {
+                            this.classList.add('active');
+                            meaningItem.classList.add('show');
+                        }
+                    });
+                });
+            }
+
+            // 绑定批量操作按钮事件
+            function bindBatchBtnEvents() {
+                const expandAllBtn = document.getElementById('expand-all-btn');
+                const collapseAllBtn = document.getElementById('collapse-all-btn');
+                const verseItems = document.querySelectorAll('.verse-item');
+                const meaningItems = document.querySelectorAll('.meaning-item');
+
+                expandAllBtn.addEventListener('click', function() {
+                    verseItems.forEach(item => item.classList.add('active'));
+                    meaningItems.forEach(item => item.classList.add('show'));
+                });
+
+                collapseAllBtn.addEventListener('click', function() {
+                    verseItems.forEach(item => item.classList.remove('active'));
+                    meaningItems.forEach(item => item.classList.remove('show'));
+                });
+            }
+
+            // 各类文件解析方法
+            function readTxtFile(file) {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => resolve(e.target.result);
+                    reader.onerror = () => reject(new Error("TXT文件读取失败"));
+                    reader.readAsText(file, 'UTF-8');
+                });
+            }
+
+            function readDocFile(file) {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = async (e) => {
+                        try {
+                            const result = await mammoth.extractRawText({ arrayBuffer: e.target.result });
+                            resolve(result.value);
+                        } catch (err) {
+                            reject(new Error("DOC/DOCX文件解析失败"));
+                        }
+                    };
+                    reader.onerror = () => reject(new Error("DOC/DOCX文件读取失败"));
+                    reader.readAsArrayBuffer(file);
+                });
+            }
+
+            async function readPdfFile(file) {
+                const arrayBuffer = await new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => resolve(e.target.result);
+                    reader.onerror = () => reject(new Error("PDF文件读取失败"));
+                    reader.readAsArrayBuffer(file);
+                });
+
+                const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+                let text = '';
+                for (let i = 1; i <= pdf.numPages; i++) {
+                    const page = await pdf.getPage(i);
+                    const content = await page.getTextContent();
+                    text += content.items.map(item => item.str).join('\n');
+                }
+                return text;
+            }
+
+            function readRtfFile(file) {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        try {
+                            const rtf = new RTFJS.Document(e.target.result);
+                            resolve(rtf.render());
+                        } catch (err) {
+                            reject(new Error("RTF文件解析失败"));
+                        }
+                    };
+                    reader.onerror = () => reject(new Error("RTF文件读取失败"));
+                    reader.readAsText(file, 'UTF-8');
+                });
+            }
+        });
+    </script>
+</body>
+</html>

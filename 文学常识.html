@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文学常识卡</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft YaHei", "SimSun", sans-serif;
+        }
+
+        body {
+            background: #f5f1e6;
+            padding: 30px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            line-height: 1.8;
+            letter-spacing: 0.5px;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 100%;
+        }
+
+        /* 上传区域样式 */
+        .upload-area {
+            background: white;
+            border-radius: 16px;
+            padding: 35px 25px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            margin-bottom: 25px;
+            text-align: center;
+        }
+
+        .upload-title {
+            font-size: 22px;
+            color: #2d3748;
+            margin-bottom: 20px;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+
+        .upload-tip {
+            font-size: 15px;
+            color: #666;
+            margin-bottom: 20px;
+            line-height: 1.8;
+        }
+
+        .upload-btn {
+            padding: 12px 30px;
+            background-color: #2196F3;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin-bottom: 20px; /* 加大按钮与提示文字间距 */
+        }
+
+        .upload-btn:hover {
+            background-color: #1976D2;
+        }
+
+        #file-input {
+            display: none;
+        }
+
+        .file-name {
+            font-size: 15px;
+            color: #4CAF50;
+            margin-top: 10px; /* 提示文字下移 */
+            display: inline-block;
+        }
+
+        /* 加载提示 */
+        .loading-area {
+            display: none;
+            text-align: center;
+            padding: 25px;
+            font-size: 16px;
+            color: #2196F3;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        /* 答题区域 */
+        .answer-area {
+            background: white;
+            border-radius: 16px;
+            padding: 35px 30px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            margin-bottom: 25px;
+            display: none;
+        }
+
+        .question-item {
+            margin-bottom: 30px;
+            line-height: 2;
+            font-size: 17px;
+            color: #333;
+            letter-spacing: 0.5px;
+        }
+
+        .blank-input {
+            width: 120px;
+            height: 36px;
+            padding: 0 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            text-align: center;
+            margin: 0 8px;
+            font-size: 15px;
+        }
+
+        .blank-input.correct {
+            border-color: #4CAF50;
+            background-color: #f0f9f0;
+        }
+
+        .blank-input.error {
+            border-color: #F44336;
+            background-color: #fef0f0;
+        }
+
+        .result-mark {
+            margin-left: 10px;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .submit-btn {
+            padding: 12px 35px;
+            background-color: #9C27B0;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin-top: 15px;
+        }
+
+        .submit-btn:hover {
+            background-color: #7b1fa2;
+        }
+
+        .result-area {
+            font-size: 18px;
+            color: #2d3748;
+            margin-top: 25px;
+            font-weight: bold;
+            display: none;
+            letter-spacing: 0.5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 上传区域 -->
+        <div class="upload-area">
+            <h2 class="upload-title">序号式文学常识文档上传</h2>
+            <p class="upload-tip">支持 txt、doc、docx、pdf格式，文档需按「1. xxx」「2. xxx」序号编写知识点</p >
+            <label for="file-input" class="upload-btn">选择文档</label>
+            <input type="file" id="file-input" accept=".txt,.doc,.docx,.pdf">
+            <p class="file-name" id="file-name">未选择文件</p >
+        </div>
+
+        <!-- 加载提示 -->
+        <div class="loading-area" id="loading-area">正在自动识别关键词并生成题目...</div>
+
+        <!-- 答题区域 -->
+        <div class="answer-area" id="answer-area">
+            <div id="question-list"></div>
+            <button class="submit-btn" id="submit-btn">提交答案</button>
+            <div class="result-area" id="result-area"></div>
+        </div>
+    </div>
+
+    <!-- 第三方解析库 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+
+    <script>
+        // 全局变量
+        let knowledgeMap = new Map();
+        let answerMap = new Map();
+
+        // 专有名词词典（可扩展）
+        const personDict = ["李白", "杜甫", "苏轼", "白居易", "鲁迅", "曹雪芹", "吴承恩", "施耐庵", "陶渊明", "王维"];
+        const workDict = ["静夜思", "登高", "水调歌头", "红楼梦", "西游记", "水浒传", "三国演义", "朝花夕拾", "桃花源记", "山居秋暝"];
+        const countryDict = ["中国", "唐朝", "宋朝", "明朝", "清朝", "战国", "春秋", "秦朝", "汉朝", "元朝"];
+        const termDict = ["绝句", "律诗", "词牌名", "文言文", "白话文", "小说", "诗歌", "散文", "乐府", "骈文"];
+
+        // 初始化PDF.js
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+
+        // 文件选择事件
+        document.getElementById('file-input').addEventListener('change', async function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            document.getElementById('file-name').textContent = file.name;
+            document.getElementById('loading-area').style.display = 'block';
+            
+            const fileContent = await readFileContent(file);
+            await generateAutoBlankQuestions(fileContent);
+            
+            document.getElementById('loading-area').style.display = 'none';
+            document.getElementById('answer-area').style.display = 'block';
+            document.getElementById('answer-area').scrollIntoView({ behavior: 'smooth' });
+        });
+
+        // 读取文件内容
+        async function readFileContent(file) {
+            const fileExt = file.name.split('.').pop().toLowerCase();
+            let content = "";
+
+            try {
+                switch (fileExt) {
+                    case 'txt':
+                        content = await readTxtFile(file);
+                        break;
+                    case 'doc':
+                    case 'docx':
+                        content = await readDocFile(file);
+                        break;
+                    case 'pdf':
+                        content = await readPdfFile(file);
+                        break;
+                    default:
+                        alert("不支持的文件格式");
+                }
+                return content.split('\n').filter(line => line.trim()).join('\n');
+            } catch (error) {
+                alert("文件读取失败：" + error.message);
+                return "";
+            }
+        }
+
+        function readTxtFile(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (e) => resolve(e.target.result);
+                reader.onerror = () => reject(new Error("TXT文件读取失败"));
+                reader.readAsText(file, 'UTF-8');
+            });
+        }
+
+        function readDocFile(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = async (e) => {
+                    try {
+                        const result = await mammoth.extractRawText({ arrayBuffer: e.target.result });
+                        resolve(result.value);
+                    } catch (err) {
+                        reject(new Error("DOC文件读取失败"));
+                    }
+                };
+                reader.onerror = () => reject(new Error("DOC文件读取失败"));
+                reader.readAsArrayBuffer(file);
+            });
+        }
+
+        async function readPdfFile(file) {
+            const arrayBuffer = await new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (e) => resolve(e.target.result);
+                reader.onerror = () => reject(new Error("PDF文件读取失败"));
+                reader.readAsArrayBuffer(file);
+            });
+
+            const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+            let content = "";
+            for (let i = 1; i <= pdf.numPages; i++) {
+                const page = await pdf.getPage(i);
+                const textContent = await page.getTextContent();
+                content += textContent.items.map(item => item.str).join(' ');
+            }
+            return content;
+        }
+
+        // 自动生成挖空题目
+        function generateAutoBlankQuestions(content) {
+            return new Promise((resolve) => {
+                const lines = content.split('\n');
+                const questionList = document.getElementById('question-list');
+                questionList.innerHTML = "";
+                answerMap.clear();
+                knowledgeMap.clear();
+
+                const numberReg = /^(\d+[.、）)])\s*/;
+
+                lines.forEach(line => {
+                    line = line.trim();
+                    if (!numberReg.test(line)) return;
+
+                    const numberMatch = line.match(numberReg);
+                    const number = numberMatch[1];
+                    let pureKnowledge = line.replace(numberReg, "");
+                    knowledgeMap.set(number, pureKnowledge);
+
+                    const allKeywords = [
+                        ...personDict.map(word => ({ text: word })),
+                        ...workDict.map(word => ({ text: word })),
+                        ...countryDict.map(word => ({ text: word })),
+                        ...termDict.map(word => ({ text: word }))
+                    ];
+
+                    allKeywords.forEach(({text}) => {
+                        if (pureKnowledge.includes(text)) {
+                            const inputId = `${number}-${text}`;
+                            answerMap.set(inputId, text);
+                            pureKnowledge = pureKnowledge.replace(text, `<input type="text" class="blank-input" id="${inputId}" data-answer="${text}">`);
+                        }
+                    });
+
+                    const questionItem = document.createElement('div');
+                    questionItem.className = 'question-item';
+                    questionItem.innerHTML = `${number} ${pureKnowledge}`;
+                    questionList.appendChild(questionItem);
+                });
+
+                resolve();
+            });
+        }
+
+        // 提交批改
+        document.getElementById('submit-btn').addEventListener('click', function() {
+            const blankInputs = document.querySelectorAll('.blank-input');
+            let correctCount = 0;
+            let totalCount = blankInputs.length;
+
+            blankInputs.forEach(input => {
+                const userAnswer = input.value.trim();
+                const correctAnswer = input.dataset.answer;
+                
+                if (userAnswer === correctAnswer) {
+                    correctCount++;
+                    input.classList.add('correct');
+                    input.classList.remove('error');
+                    if (!input.nextElementSibling?.classList.contains('result-mark')) {
+                        const mark = document.createElement('span');
+                        mark.className = 'result-mark';
+                        mark.textContent = '✅';
+                        input.parentNode.insertBefore(mark, input.nextSibling);
+                    }
+                } else {
+                    input.classList.add('error');
+                    input.classList.remove('correct');
+                    if (!input.nextElementSibling?.classList.contains('result-mark')) {
+                        const mark = document.createElement('span');
+                        mark.className = 'result-mark';
+                        mark.textContent = `❌ 正确：${correctAnswer}`;
+                        input.parentNode.insertBefore(mark, input.nextSibling);
+                    }
+                }
+                input.disabled = true;
+            });
+
+            const resultArea = document.getElementById('result-area');
+            resultArea.style.display = 'block';
+            resultArea.textContent = `答题结果：答对 ${correctCount} 题，答错 ${totalCount - correctCount} 题，正确率 ${Math.round((correctCount / totalCount) * 100)}%`;
+        });
+    </script>
+</body>
+</html>

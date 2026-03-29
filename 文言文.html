@@ -1,0 +1,956 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文言释义卡</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft YaHei", "SimSun", sans-serif;
+        }
+
+        body {
+            background: #f5f1e6;
+            padding: 30px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* 上传区域样式 */
+        .upload-area {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            max-width: 800px;
+            width: 100%;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .upload-title {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .upload-btn-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+            margin-bottom: 15px;
+        }
+
+        .btn-upload {
+            border: 2px dashed #2196F3;
+            color: #2196F3;
+            background-color: white;
+            padding: 8px 20px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .upload-btn-wrapper input[type=file] {
+            font-size: 100px;
+            position: absolute;
+            left: 0;
+            top: 0;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        /* 按钮组：并排展示 */
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin: 10px 0;
+        }
+
+        .btn-common {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            color: white;
+        }
+
+        .btn-library {
+            background-color: #9C27B0;
+        }
+
+        .btn-library:hover {
+            background-color: #7b1fa2;
+        }
+
+        .btn-default {
+            background-color: #4CAF50;
+        }
+
+        .btn-default:hover {
+            background-color: #388E3C;
+        }
+
+        /* 优化：中间搜索栏样式 - 放大输入框+新增清空按钮 */
+        .middle-search-area {
+            max-width: 800px;
+            width: 100%;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            align-items: center;
+            margin: 10px 0;
+        }
+
+        .middle-search-input {
+            width: 450px;
+            padding: 10px 18px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 15px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .middle-search-input:focus {
+            border-color: #2196F3;
+            box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.2);
+        }
+
+        .middle-search-btn {
+            padding: 10px 20px;
+            background-color: #2196F3;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .middle-search-btn:hover {
+            background-color: #1976D2;
+        }
+
+        /* 新增：清空按钮 */
+        .middle-clear-btn {
+            padding: 10px 16px;
+            background-color: #F44336;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .middle-clear-btn:hover {
+            background-color: #D32F2F;
+        }
+
+        .search-tip {
+            font-size: 13px;
+            color: #666;
+            margin: 5px 0;
+            text-align: center;
+        }
+
+        /* 多篇格式提示 */
+        .upload-tip {
+            font-size: 14px;
+            color: #666;
+            line-height: 1.8;
+            background-color: #f0f8fb;
+            padding: 10px;
+            border-radius: 8px;
+        }
+
+        .file-info {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #4CAF50;
+            font-weight: bold;
+        }
+
+        /* 文库列表样式 */
+        .library-list {
+            max-width: 800px;
+            width: 100%;
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            margin: 10px 0;
+            display: none;
+        }
+
+        .library-title {
+            font-size: 16px;
+            color: #2d3748;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .library-item {
+            padding: 8px 12px;
+            margin: 5px 0;
+            background: #f5f5f5;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .library-item:hover {
+            background: #e8f4f8;
+        }
+
+        /* 文言文容器 */
+        .text-container {
+            background: white;
+            border-radius: 16px;
+            padding: 40px 30px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            max-width: 800px;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        /* 标题区域样式 */
+        .title-section {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #e8f4f8;
+            padding-bottom: 15px;
+        }
+
+        .text-title {
+            font-size: 28px;
+            color: #2d3748;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .text-meta {
+            font-size: 16px;
+            color: #718096;
+            font-style: italic;
+        }
+
+        /* 句子列表 */
+        .sentence-list {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        /* 文言句子样式 */
+        .sentence-item {
+            cursor: pointer;
+            font-size: 18px;
+            color: #2d3748;
+            line-height: 1.8;
+            padding: 12px 15px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .sentence-item:hover {
+            background-color: #e8f4f8;
+        }
+
+        .sentence-item.active {
+            background-color: #f0f8fb;
+            border-left: 4px solid #2196F3;
+        }
+
+        /* 逐句释义样式 */
+        .meaning-item {
+            background: #f8f8f8;
+            border-radius: 8px;
+            padding: 12px 20px;
+            margin-bottom: 15px;
+            font-size: 16px;
+            color: #4a5568;
+            line-height: 1.8;
+            display: none;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        .meaning-item.show {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* 空数据提示 */
+        .empty-tip {
+            text-align: center;
+            font-size: 18px;
+            color: #718096;
+            padding: 50px 0;
+        }
+    </style>
+</head>
+<body>
+    <!-- 上传区域 -->
+    <div class="upload-area">
+        <div class="upload-title">📤 上传自定义文言文（支持单篇/多篇，多格式）</div>
+        <div class="upload-btn-wrapper">
+            <button class="btn-upload">选择文件</button>
+            <input type="file" id="file-upload" accept=".txt,.doc,.docx,.pdf,.rtf">
+        </div>
+
+        <!-- 按钮组：显示文库列表 + 使用默认文言文 并排 -->
+        <div class="btn-group">
+            <button class="btn-common btn-library" id="library-toggle-btn">📚 显示文库列表</button>
+            <button class="btn-common btn-default" id="reset-btn">📖 使用默认文言文</button>
+        </div>
+
+        <!-- 多篇格式提示 -->
+        <div class="upload-tip">
+            📝 <strong>【必看】文件格式要求（单篇/多篇通用）</strong><br>
+            1. 单篇：标题行 → 年代作者行 → 原文+译文逐行交替<br>
+            2. 多篇：每篇按单篇格式书写，<strong>篇与篇之间用3个及以上空行分隔</strong>
+        </div>
+
+        <div class="file-info" id="file-info"></div>
+    </div>
+
+    <!-- 优化：中间搜索栏（放大+清空按钮） -->
+    <div class="middle-search-area">
+        <input type="text" class="middle-search-input" id="middle-search-input" placeholder="输入标题搜索文言文">
+        <button class="middle-search-btn" id="middle-search-btn">搜索</button>
+        <button class="middle-clear-btn" id="middle-clear-btn">清空</button>
+    </div>
+    <div class="search-tip" id="middle-search-tip"></div>
+
+    <!-- 文库列表（点击显隐） -->
+    <div class="library-list" id="library-list">
+        <div class="library-title">已导入文言文列表</div>
+        <div id="library-content"></div>
+    </div>
+
+    <!-- 文言文展示容器 -->
+    <div class="text-container" id="text-container">
+        <div class="empty-tip" id="empty-tip">请上传文言文文件或点击使用默认文本</div>
+    </div>
+
+    <!-- 第三方解析库 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/rtf.js/0.10.0/rtf.min.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 默认文言文文库：四篇经典篇目（内容源自古诗文网）
+            const defaultTextLibrary = [
+                {
+                    title: "桃花源记",
+                    meta: "东晋 · 陶渊明",
+                    sentences: [
+                        "晋太元中，武陵人捕鱼为业。",
+                        "缘溪行，忘路之远近。",
+                        "忽逢桃花林，夹岸数百步，中无杂树，芳草鲜美，落英缤纷。",
+                        "渔人甚异之，复前行，欲穷其林。",
+                        "林尽水源，便得一山，山有小口，仿佛若有光。",
+                        "便舍船，从口入。",
+                        "初极狭，才通人。",
+                        "复行数十步，豁然开朗。",
+                        "土地平旷，屋舍俨然，有良田、美池、桑竹之属。",
+                        "阡陌交通，鸡犬相闻。",
+                        "其中往来种作，男女衣着，悉如外人。",
+                        "黄发垂髫，并怡然自乐。",
+                        "见渔人，乃大惊，问所从来。",
+                        "具答之。",
+                        "便要还家，设酒杀鸡作食。",
+                        "村中闻有此人，咸来问讯。",
+                        "自云先世避秦时乱，率妻子邑人来此绝境，不复出焉，遂与外人间隔。",
+                        "问今是何世，乃不知有汉，无论魏晋。",
+                        "此人一一为具言所闻，皆叹惋。",
+                        "余人各复延至其家，皆出酒食。",
+                        "停数日，辞去。",
+                        "此中人语云：“不足为外人道也。”",
+                        "既出，得其船，便扶向路，处处志之。",
+                        "及郡下，诣太守，说如此。",
+                        "太守即遣人随其往，寻向所志，遂迷，不复得路。",
+                        "南阳刘子骥，高尚士也，闻之，欣然规往。",
+                        "未果，寻病终。",
+                        "后遂无问津者。"
+                    ],
+                    translations: [
+                        "东晋太元年间，武陵郡有个人以打鱼为生。",
+                        "他顺着溪水划船，忘记了路程的远近。",
+                        "忽然遇到一片桃花林，生长在溪水的两岸，长达几百步，中间没有别的树，花草鲜嫩美丽，落花纷纷的散在地上。",
+                        "渔人对此感到十分诧异，继续往前走，想走到林子的尽头。",
+                        "桃林的尽头就是溪水的发源地，于是便出现一座山，山上有个小洞口，洞里仿佛有点光亮。",
+                        "于是他下了船，从洞口进去了。",
+                        "起初洞口很狭窄，仅容一人通过。",
+                        "又走了几十步，突然变得开阔明亮了。",
+                        "呈现在他眼前的是一片平坦宽广的土地，一排排整齐的房舍，还有肥沃的田地、美丽的池塘，有桑树、竹林这类的植物。",
+                        "田间小路交错相通，鸡鸣狗吠的声音此起彼伏。",
+                        "人们在田野里来来往往耕种劳作，男女的穿戴，跟桃花源以外的世人完全一样。",
+                        "老人和小孩，都怡然并自得其乐。",
+                        "村里的人看到渔人，感到非常惊讶，问他是从哪儿来的。",
+                        "渔人详细地做了回答。",
+                        "村里有人就邀请他到自己家里去（做客），摆了酒、杀了鸡做饭来款待他。",
+                        "村里的其他人听说来了这么一个人，就都来打听消息。",
+                        "他们自己说他们的祖先为了躲避秦时的战乱，领着妻子儿女和乡邻来到这个与人世隔绝的地方，不再出去，因而跟外面的人断绝了来往。",
+                        "他们问渔人现在是什么朝代，他们竟然不知道有过汉朝，更不必说魏晋两朝了。",
+                        "渔人把自己知道的事一一详尽地告诉了他们，听完以后，他们都感叹惋惜。",
+                        "其余的人各自又把渔人请到自己家中，都拿出酒饭来款待他。",
+                        "渔人停留了几天，向村里人告辞离开。",
+                        "村里的人对他说：“我们这个地方不值得对外面的人说啊。”",
+                        "渔人出来以后，找到了他的船，就顺着旧路回去，处处都做了标记。",
+                        "到了郡城，到太守那里去，报告了这番经历。",
+                        "太守立即派人跟着他去，寻找以前所做的标记，终于迷失了方向，再也找不到通往桃花源的路了。",
+                        "南阳人刘子骥，是个志向高洁的隐士，听到这件事后，高兴地计划前往。",
+                        "但没有实现，不久因病去世了。",
+                        "此后就再也没有问桃花源路的人了。"
+                    ]
+                },
+                {
+                    title: "岳阳楼记",
+                    meta: "宋 · 范仲淹",
+                    sentences: [
+                        "庆历四年春，滕子京谪守巴陵郡。",
+                        "越明年，政通人和，百废具兴。",
+                        "乃重修岳阳楼，增其旧制，刻唐贤今人诗赋于其上。",
+                        "属予作文以记之。",
+                        "予观夫巴陵胜状，在洞庭一湖。",
+                        "衔远山，吞长江，浩浩汤汤，横无际涯；朝晖夕阴，气象万千。",
+                        "此则岳阳楼之大观也，前人之述备矣。",
+                        "然则北通巫峡，南极潇湘，迁客骚人，多会于此，览物之情，得无异乎？",
+                        "若夫淫雨霏霏，连月不开，阴风怒号，浊浪排空；日星隐曜，山岳潜形；商旅不行，樯倾楫摧；薄暮冥冥，虎啸猿啼。",
+                        "登斯楼也，则有去国怀乡，忧国忧民，满目萧然，感极而悲者矣。",
+                        "至若春和景明，波澜不惊，上下天光，一碧万顷；沙鸥翔集，锦鳞游泳；岸芷汀兰，郁郁青青。",
+                        "而或长烟一空，皓月千里，浮光跃金，静影沉璧，渔歌互答，此乐何极！",
+                        "登斯楼也，则有心旷神怡，宠辱偕忘，把酒临风，其喜洋洋者矣。",
+                        "嗟夫！予尝求古仁人之心，或异二者之为，何哉？",
+                        "不以物喜，不以己悲；居庙堂之高则忧其民；处江湖之远则忧其君。",
+                        "是进亦忧，退亦忧。",
+                        "然则何时而乐耶？",
+                        "其必曰“先天下之忧而忧，后天下之乐而乐”乎。",
+                        "噫！微斯人，吾谁与归？",
+                        "时六年九月十五日。"
+                    ],
+                    translations: [
+                        "庆历四年的春天，滕子京被降职到巴陵郡做太守。",
+                        "到了第二年，政事顺利，百姓和乐，各种荒废的事业都兴办起来了。",
+                        "于是重新修建岳阳楼，扩大它原有的规模，把唐代名家和当代人的诗赋刻在它上面。",
+                        "嘱托我写一篇文章来记述这件事情。",
+                        "我观看那巴陵郡的美好景色，全在洞庭湖上。",
+                        "它连接着远处的山，吞吐长江的水流，浩浩荡荡，无边无际，一天里阴晴多变，气象千变万化。",
+                        "这就是岳阳楼的雄伟景象，前人的记述已经很详尽了。",
+                        "虽然如此，那么向北面通到巫峡，向南面直到潇水和湘水，降职的官吏和来往的诗人，大多在这里聚会，他们观赏自然景物而触发的感情大概会有所不同吧？",
+                        "像那阴雨连绵，接连几个月不放晴，寒风怒吼，浑浊的浪冲向天空；太阳和星星隐藏起光辉，山岳隐没了形体；商人和旅客不能通行，船桅倒下，船桨折断；傍晚天色昏暗，虎在长啸，猿在悲啼。",
+                        "这时登上这座楼啊，就会有一种离开国都、怀念家乡，担心人家说坏话、惧怕人家批评指责，满眼都是萧条的景象，感慨到了极点而悲伤的心情。",
+                        "到了春风和煦，阳光明媚的时候，湖面平静，没有惊涛骇浪，天色湖光相连，一片碧绿，广阔无际；沙洲上的鸥鸟，时而飞翔，时而停歇，美丽的鱼游来游去，岸上的香草和小洲上的兰花，草木茂盛，青翠欲滴。",
+                        "有时大片烟雾完全消散，皎洁的月光一泻千里，波动的光闪着金色，静静的月影像沉入水中的玉璧，渔夫的歌声在你唱我和地响起来，这种乐趣真是无穷无尽啊！",
+                        "这时登上这座楼，就会感到心胸开阔、心情愉快，光荣和屈辱一并忘了，端着酒杯，吹着微风，那真是快乐高兴极了。",
+                        "唉！我曾经探求古时品德高尚的人的思想感情，或许不同于以上两种人的心情，这是为什么呢？",
+                        "是由于不因外物好坏和自己得失而或喜或悲。在朝廷上做官时，就为百姓担忧；处在僻远的江湖间，就为国君担忧。",
+                        "这样来说在朝廷做官也担忧，在僻远的江湖也担忧。",
+                        "既然这样，那么他们什么时候才会感到快乐呢？",
+                        "他们一定会说：“在天下人忧之前先忧，在天下人乐之后才乐”。",
+                        "唉！没有这种人，我同谁一道呢？",
+                        "写于庆历六年九月十五日。"
+                    ]
+                },
+                {
+                    title: "梦游天姥吟留别",
+                    meta: "唐 · 李白",
+                    sentences: [
+                        "海客谈瀛洲，烟涛微茫信难求；",
+                        "越人语天姥，云霞明灭或可睹。",
+                        "天姥连天向天横，势拔五岳掩赤城。",
+                        "天台四万八千丈，对此欲倒东南倾。",
+                        "我欲因之梦吴越，一夜飞度镜湖月。",
+                        "湖月照我影，送我至剡溪。",
+                        "谢公宿处今尚在，渌水荡漾清猿啼。",
+                        "脚著谢公屐，身登青云梯。",
+                        "半壁见海日，空中闻天鸡。",
+                        "千岩万转路不定，迷花倚石忽已暝。",
+                        "熊咆龙吟殷岩泉，栗深林兮惊层巅。",
+                        "云青青兮欲雨，水澹澹兮生烟。",
+                        "列缺霹雳，丘峦崩摧。",
+                        "洞天石扉，訇然中开。",
+                        "青冥浩荡不见底，日月照耀金银台。",
+                        "霓为衣兮风为马，云之君兮纷纷而来下。",
+                        "虎鼓瑟兮鸾回车，仙之人兮列如麻。",
+                        "忽魂悸以魄动，恍惊起而长嗟。",
+                        "惟觉时之枕席，失向来之烟霞。",
+                        "世间行乐亦如此，古来万事东流水。",
+                        "别君去兮何时还？",
+                        "且放白鹿青崖间，须行即骑访名山。",
+                        "安能摧眉折腰事权贵，使我不得开心颜！"
+                    ],
+                    translations: [
+                        "航海的人谈起瀛洲，大海波涛渺茫确实不易寻求；",
+                        "吴越一带的人谈起天姥山，云霞忽明忽暗（天姥山）有时可以看到。",
+                        "天姥山仿佛连接着天遮断了天空，山势高峻超过五岳，遮掩过赤城山。",
+                        "天台山虽高四万八千丈，面对着它好像要向东南倾斜拜倒一样。",
+                        "我根据越人说的话梦游到吴越，一天夜晚飞渡过明月映照下的镜湖。",
+                        "镜湖上的月光照着我的影子，一直送我到剡溪。",
+                        "谢灵运住的地方如今还在，清澈的湖水荡漾，猿猴清啼。",
+                        "我脚上穿着谢公当年特制的木鞋，攀登直上云霄的山路。",
+                        "上到半山腰就看见了从海上升起的太阳，在半空中传来天鸡报晓的叫声。",
+                        "无数山岩重叠，道路盘旋弯曲，方向不定，迷恋着花，依倚着石头，不觉天色已晚。",
+                        "熊在怒吼，龙在长鸣，岩中的泉水在震响，使森林战栗，使山峰惊颤。",
+                        "云层黑沉沉的，像是要下雨，水波动荡生起了烟雾。",
+                        "电光闪闪，雷声轰鸣，山峰好像要被崩塌似的。",
+                        "仙府的石门，訇的一声从中间打开。",
+                        "洞中蔚蓝的天空广阔无际，看不到尽头，日月照耀着金银做的宫阙。",
+                        "用彩虹做衣裳，将风作为马来乘，云中的神仙们纷纷下来。",
+                        "老虎弹奏着琴瑟，鸾鸟驾着车，仙人们成群结队密密如麻。",
+                        "忽然魂魄惊动，我猛然惊醒，不禁长声叹息。",
+                        "醒来时只有身边的枕席，刚才梦中所见的烟雾云霞全都消失了。",
+                        "人世间的欢乐也是像梦中的幻境这样，自古以来万事都像东流的水一样一去不复返。",
+                        "告别诸位朋友远去（东鲁）啊，什么时候才能回来？",
+                        "暂且把白鹿放牧在青崖间，等到要远行时就骑上它访名山。",
+                        "岂能卑躬屈膝去侍奉权贵，使我不能有舒心畅意的笑颜！"
+                    ]
+                },
+                {
+                    title: "醉翁亭记",
+                    meta: "宋 · 欧阳修",
+                    sentences: [
+                        "环滁皆山也。",
+                        "其西南诸峰，林壑尤美，望之蔚然而深秀者，琅琊也。",
+                        "山行六七里，渐闻水声潺潺而泻出于两峰之间者，酿泉也。",
+                        "峰回路转，有亭翼然临于泉上者，醉翁亭也。",
+                        "作亭者谁？山之僧智仙也。",
+                        "名之者谁？太守自谓也。",
+                        "太守与客来饮于此，饮少辄醉，而年又最高，故自号曰醉翁也。",
+                        "醉翁之意不在酒，在乎山水之间也。",
+                        "山水之乐，得之心而寓之酒也。",
+                        "若夫日出而林霏开，云归而岩穴暝，晦明变化者，山间之朝暮也。",
+                        "野芳发而幽香，佳木秀而繁阴，风霜高洁，水落而石出者，山间之四时也。",
+                        "朝而往，暮而归，四时之景不同，而乐亦无穷也。",
+                        "至于负者歌于途，行者休于树，前者呼，后者应，伛偻提携，往来而不绝者，滁人游也。",
+                        "临溪而渔，溪深而鱼肥。",
+                        "酿泉为酒，泉香而酒洌；山肴野蔌，杂然而前陈者，太守宴也。",
+                        "宴酣之乐，非丝非竹，射者中，弈者胜，觥筹交错，起坐而喧哗者，大搞混众宾欢也。",
+                        "苍颜白发，颓然乎其间者，太守醉也。",
+                        "已而夕阳在山，人影散乱，太守归而宾客从也。",
+                        "树林阴翳，鸣声上下，游人去而禽鸟乐也。",
+                        "然而禽鸟知山林之乐，而不知人之乐；人知从太守游而乐，而不知太守之乐其乐也。",
+                        "醉能同其乐，醒能述以文者，太守也。",
+                        "太守谓谁？庐陵欧阳修也。"
+                    ],
+                    translations: [
+                        "环绕滁州的都是山。",
+                        "那西南方的几座山峰，树林和山谷格外秀美，一眼望去，树木茂盛，又幽深又秀丽的，是琅琊山。",
+                        "沿着山路走六七里，渐渐听到潺潺的流水声，是一股水流从两峰之间飞泻而下，是酿泉。",
+                        "泉水沿着山峰折绕，沿着山路拐弯，有一座亭子像飞鸟展翅似地，飞架在泉上，那就是醉翁亭。",
+                        "建造这亭子的是谁呢？是山上的和尚智仙。",
+                        "给它取名的又是谁呢？太守用自己的别号（醉翁）来命名。",
+                        "太守和他的宾客们来这儿饮酒，只喝一点儿就醉了；而且年纪又最大，所以自号“醉翁”。",
+                        "醉翁的情趣不在于喝酒，而在欣赏山水的美景。",
+                        "欣赏山水美景的乐趣，领会在心里，寄托在酒上。",
+                        "至于太阳的升起，山林里的雾气散了；烟云聚拢来，山谷就显得昏暗了；朝则自暗而明，暮则自明而暗，或暗或明，变化不一，这就是山中的朝暮。",
+                        "野花开了，有一股清幽的香味；好的树木枝繁叶茂，形成一片浓密的绿荫；风高霜洁，天高气爽，水落石出，这就是山中的四季。",
+                        "清晨前往，黄昏归来，四季的风光不同，乐趣也是无穷无尽的。",
+                        "至于背着东西的人在路上欢唱，来去行路的人在树下休息，前面的招呼，后面的答应；老人弯着腰走，小孩子由大人领着走，来来往往不断的行人，是滁州的游客。",
+                        "到溪边钓鱼，溪水深并且鱼肉肥美。",
+                        "用酿泉造酒，泉水香并且酒也清；野味野菜，横七竖八地摆在面前的，那是太守主办的宴席。",
+                        "宴会喝酒的乐趣，不在于音乐；投射的中了，下棋的赢了，酒杯和酒筹交互错杂；时起时坐大声喧闹的人，是欢乐的宾客们。",
+                        "一个脸色苍老的老人，醉醺醺地坐在众人中间，是太守喝醉了。",
+                        "不久，太阳下山了，人影散乱，宾客们跟随太守回去了。",
+                        "树林里的枝叶茂密成荫，鸟儿到处叫，是游人离开后鸟儿在欢乐地跳跃。",
+                        "但是鸟儿只知道山林中的快乐，却不知道人们的快乐；而人们只知道跟随太守游玩的快乐，却不知道太守以游人的快乐为快乐啊。",
+                        "醉了能够和大家一起欢乐，醒来能够用文章记述这乐事的人，那就是太守啊。",
+                        "太守是谁呢？是庐陵欧阳修吧。"
+                    ]
+                }
+                        ,{
+    title: "陋室铭",
+    meta: "唐 · 刘禹锡",
+    sentences: [
+        "山不在高，有仙则名。",
+        "水不在深，有龙则灵。",
+        "斯是陋室，惟吾德馨。",
+        "苔痕上阶绿，草色入帘青。",
+        "谈笑有鸿儒，往来无白丁。",
+        "可以调素琴，阅金经。",
+        "无丝竹之乱耳，无案牍之劳形。",
+        "南阳诸葛庐，西蜀子云亭。",
+        "孔子云：何陋之有？"
+    ],
+    translations: [
+        "山不在于高，有了神仙就会有名气。",
+        "水不在于深，有了龙就会有灵气。",
+        "这是简陋的房子，只是我品德好就感觉不到简陋了。",
+        "苔痕碧绿，长到台上，草色青葱，映入帘里。",
+        "到这里谈笑的都是博学之人，交往的没有知识浅薄之人。",
+        "可以弹奏不加装饰的琴，阅读珍贵的佛经。",
+        "没有弦管奏乐的声音扰乱耳朵，没有官府的公文使身体劳累。",
+        "南阳有诸葛亮的草庐，西蜀有扬子云的亭子。",
+        "孔子说：有什么简陋的呢？"
+    ]
+},{
+    title: "爱莲说",
+    meta: "宋 · 周敦颐",
+    sentences: [
+        "水陆草木之花，可爱者甚繁。",
+        "晋陶渊明独爱菊。",
+        "自李唐来，世人甚爱牡丹。",
+        "予独爱莲之出淤泥而不染，濯清涟而不妖。",
+        "中通外直，不蔓不枝，香远益清，亭亭净植，可远观而不可亵玩焉。",
+        "予谓菊，花之隐逸者也；",
+        "牡丹，花之富贵者也；",
+        "莲，花之君子者也。",
+        "噫！菊之爱，陶后鲜有闻。",
+        "莲之爱，同予者何人？",
+        "牡丹之爱，宜乎众矣。"
+    ],
+    translations: [
+        "水上、陆地上各种草本木本的花，值得喜爱的非常多。",
+        "晋代的陶渊明唯独喜爱菊花。",
+        "从李氏唐朝以来，世人大多喜爱牡丹。",
+        "我唯独喜爱莲花从积存的淤泥中长出却不被污染，经过清水的洗涤却不显得妖艳。",
+        "它的茎中间贯通，外形挺直，不生蔓，也不长枝，香气传播更加清香，笔直洁净地竖立在水中，人们可以远远地观赏，却不可轻易地玩弄它啊。",
+        "我认为菊花，是花中的隐士；",
+        "牡丹，是花中的富贵者；",
+        "莲花，是花中的君子。",
+        "唉！对于菊花的喜爱，在陶渊明以后很少听到了。",
+        "对于莲花的喜爱，和我一样的还有谁？",
+        "对于牡丹的喜爱，当然就很多人了！"
+    ]
+},{
+    title: "小石潭记",
+    meta: "唐 · 柳宗元",
+    sentences: [
+        "从小丘西行百二十步，隔篁竹，闻水声，如鸣珮环，心乐之。",
+        "伐竹取道，下见小潭，水尤清冽。",
+        "全石以为底，近岸，卷石底以出，为坻，为屿，为嵁，为岩。",
+        "青树翠蔓，蒙络摇缀，参差披拂。",
+        "潭中鱼可百许头，皆若空游无所依。",
+        "日光下澈，影布石上，佁然不动；俶尔远逝，往来翕忽。",
+        "似与游者相乐。",
+        "潭西南而望，斗折蛇行，明灭可见。",
+        "其岸势犬牙差互，不可知其源。",
+        "坐潭上，四面竹树环合，寂寥无人，凄神寒骨，悄怆幽邃。",
+        "以其境过清，不可久居，乃记之而去。",
+        "同游者：吴武陵，龚古，余弟宗玄。",
+        "隶而从者，崔氏二小生：曰恕己，曰奉壹。"
+    ],
+    translations: [
+        "从小丘向西走一百二十多步，隔着竹林，可以听到水声，就像人身上佩带的珮环相碰击发出的声音，心里为之高兴。",
+        "砍倒竹子，开辟出一条道路，沿路走下去看见一个小潭，潭水格外清凉。",
+        "小潭以整块石头为底，靠近岸边，石底有些部分翻卷过来露出水面，成为了水中高地、小岛、不平的岩石和石岩等各种不同的形状。",
+        "青翠的树木，翠绿的藤蔓，遮掩缠绕，摇动下垂，参差不齐，随风飘拂。",
+        "潭中的鱼大约有一百来条，都好像在空中游动，什么依靠都没有。",
+        "阳光直照到水底，鱼的影子映在水底的石上，呆呆地一动不动；忽然间又向远处游去了，来来往往，轻快敏捷。",
+        "好像和游玩的人互相取乐。",
+        "向小石潭的西南方望去，看到溪水像北斗星那样曲折，水流像蛇那样蜿蜒前行，一段明的看得见，一段暗的看不见。",
+        "两岸的地势像狗的牙齿那样相互交错，不能知道溪水的源头。",
+        "我坐在潭边，四面环绕合抱着竹林和树林，寂静寥落，空无一人，使人感到心情凄凉，寒气入骨，幽静深远，弥漫着忧伤的气息。",
+        "因为这里的环境太凄清，不可长久停留，于是就把当时的情景记下来便离去了。",
+        "一起去游玩的人有吴武陵、龚古、我的弟弟宗玄。",
+        "跟着同去的有姓崔的两个年轻人：一个叫做恕己，一个叫做奉壹。"
+    ]
+}
+            ];
+
+            // 全局文库：初始化加载四篇默认篇目
+            let textLibrary = JSON.parse(JSON.stringify(defaultTextLibrary));
+            let currentTextData = null;
+            const fileUpload = document.getElementById('file-upload');
+            const fileInfo = document.getElementById('file-info');
+            const resetBtn = document.getElementById('reset-btn');
+            const textContainer = document.getElementById('text-container');
+            const emptyTip = document.getElementById('empty-tip');
+            const libraryToggleBtn = document.getElementById('library-toggle-btn');
+            const libraryList = document.getElementById('library-list');
+            const libraryContent = document.getElementById('library-content');
+            // 搜索栏元素
+            const middleSearchInput = document.getElementById('middle-search-input');
+            const middleSearchBtn = document.getElementById('middle-search-btn');
+            const middleClearBtn = document.getElementById('middle-clear-btn');
+            const middleSearchTip = document.getElementById('middle-search-tip');
+
+            // 初始化PDF.js
+            pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+
+            // 文库列表 点击显隐切换
+            libraryToggleBtn.addEventListener('click', function() {
+                if (libraryList.style.display === 'block') {
+                    libraryList.style.display = 'none';
+                    libraryToggleBtn.textContent = '📚 显示文库列表';
+                } else {
+                    libraryList.style.display = 'block';
+                    libraryToggleBtn.textContent = '📚 隐藏文库列表';
+                    updateLibraryList();
+                }
+            });
+
+            // 加载默认文言文（默认显示第一篇《桃花源记》）
+            resetBtn.addEventListener('click', function() {
+                renderText(defaultTextLibrary[0]);
+                fileInfo.textContent = `✅ 已加载默认文库：${defaultTextLibrary.map(item => item.title).join('、')}`;
+                middleSearchTip.textContent = "";
+            });
+
+            // 搜索功能
+            middleSearchBtn.addEventListener('click', function() {
+                const keyword = middleSearchInput.value.trim();
+                if (!keyword) {
+                    middleSearchTip.textContent = "⚠️ 请输入文言文标题关键词";
+                    middleSearchTip.style.color = "#F44336";
+                    return;
+                }
+
+                const matchedList = textLibrary.filter(item => item.title.includes(keyword));
+                if (matchedList.length === 0) {
+                    middleSearchTip.textContent = `❌ 未找到包含「${keyword}」的文言文`;
+                    middleSearchTip.style.color = "#F44336";
+                    textContainer.innerHTML = `<div class="empty-tip">未找到匹配内容</div>`;
+                } else {
+                    middleSearchTip.textContent = `✅ 找到 ${matchedList.length} 篇匹配的文言文`;
+                    middleSearchTip.style.color = "#4CAF50";
+                    renderText(matchedList[0]);
+                    if (libraryList.style.display === 'block') {
+                        libraryContent.innerHTML = matchedList.map(item => 
+                            `<div class="library-item" onclick="renderText(${JSON.stringify(item).replace(/"/g, '&quot;')})">${item.title}（${item.meta}）</div>`
+                        ).join('');
+                    }
+                }
+            });
+
+            // 清空按钮功能
+            middleClearBtn.addEventListener('click', function() {
+                middleSearchInput.value = "";
+                middleSearchTip.textContent = "";
+                // 清空后恢复显示全部文库内容（若列表展开）
+                if (libraryList.style.display === 'block') {
+                    updateLibraryList();
+                }
+                // 恢复显示默认或最后查看的内容
+                if (currentTextData) {
+                    renderText(currentTextData);
+                } else {
+                    textContainer.innerHTML = `<div class="empty-tip">请上传文言文文件或点击使用默认文本</div>`;
+                }
+            });
+
+            // 回车触发搜索
+            middleSearchInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    middleSearchBtn.click();
+                }
+            });
+
+            // 多篇文言文解析（按空行分隔）
+            fileUpload.addEventListener('change', async function(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                const fileName = file.name;
+                const fileExt = fileName.slice(fileName.lastIndexOf('.')).toLowerCase();
+                let textContent = '';
+
+                try {
+                    fileInfo.textContent = "⏳ 正在解析文件，请稍候...";
+                    fileInfo.style.color = '#2196F3';
+                    middleSearchTip.textContent = "";
+
+                    switch (fileExt) {
+                        case '.txt':
+                            textContent = await readTxtFile(file);
+                            break;
+                        case '.doc':
+                        case '.docx':
+                            textContent = await readDocFile(file);
+                            break;
+                        case '.pdf':
+                            textContent = await readPdfFile(file);
+                            break;
+                        case '.rtf':
+                            textContent = await readRtfFile(file);
+                            break;
+                        default:
+                            throw new Error("不支持的文件格式");
+                    }
+
+                    const multiText = textContent.split(/\n{3,}/).map(part => part.trim()).filter(part => part);
+                    if (multiText.length === 0) {
+                        throw new Error("文件内容为空！请按格式填写");
+                    }
+
+                    const importedList = [];
+                    for (const part of multiText) {
+                        const lines = part.split('\n').map(line => line.trim()).filter(line => line);
+                        if (lines.length < 5) continue;
+
+                        const title = lines[0];
+                        const meta = lines[1];
+                        const contentLines = lines.slice(2);
+                        const sentences = [];
+                        const translations = [];
+
+                        for (let i = 0; i < contentLines.length; i += 2) {
+                            if (i + 1 < contentLines.length) {
+                                sentences.push(contentLines[i]);
+                                translations.push(contentLines[i + 1]);
+                            }
+                        }
+
+                        if (sentences.length === 0 || sentences.length !== translations.length) continue;
+
+                        const singleData = { title, meta, sentences, translations };
+                        const existIndex = textLibrary.findIndex(item => item.title === title);
+                        if (existIndex > -1) {
+                            textLibrary[existIndex] = singleData;
+                        } else {
+                            textLibrary.push(singleData);
+                        }
+                        importedList.push(title);
+                    }
+
+                    if (importedList.length === 0) {
+                        throw new Error("未解析到符合格式的文言文！请检查文件内容");
+                    }
+
+                    renderText(textLibrary.find(item => item.title === importedList[0]));
+                    fileInfo.textContent = `✅ 成功导入 ${importedList.length} 篇文言文：${importedList.join('、')}`;
+                    fileInfo.style.color = '#4CAF50';
+
+                } catch (error) {
+                    fileInfo.textContent = `❌ 解析失败：${error.message}`;
+                    fileInfo.style.color = '#F44336';
+                }
+            });
+
+            // 更新文库列表
+            function updateLibraryList() {
+                if (textLibrary.length === 0) {
+                    libraryContent.innerHTML = '<div class="empty-tip">文库暂无内容</div>';
+                    return;
+                }
+                libraryContent.innerHTML = textLibrary.map(item => 
+                    `<div class="library-item" onclick="renderText(${JSON.stringify(item).replace(/"/g, '&quot;')})">${item.title}（${item.meta}）</div>`
+                ).join('');
+            }
+
+            // 暴露全局方法供列表点击调用
+            window.renderText = renderText;
+
+            // 渲染单篇文言文
+            function renderText(data) {
+                currentTextData = data;
+                emptyTip.style.display = 'none';
+
+                const titleHtml = `
+                    <div class="title-section">
+                        <h2 class="text-title">${data.title}</h2>
+                        <p class="text-meta">${data.meta}</p>
+                    </div>
+                `;
+
+                let sentenceHtml = '';
+                data.sentences.forEach((sentence, index) => {
+                    sentenceHtml += `
+                        <div class="sentence-item" data-index="${index}">${sentence}</div>
+                        <div class="meaning-item" id="meaning-${index}">${data.translations[index]}</div>
+                    `;
+                });
+
+                textContainer.innerHTML = `${titleHtml}<div class="sentence-list">${sentenceHtml}</div>`;
+                bindSentenceEvents();
+            }
+
+            // 绑定句子点击显隐译文事件
+            function bindSentenceEvents() {
+                const sentenceItems = document.querySelectorAll('.sentence-item');
+                sentenceItems.forEach(item => {
+                    item.addEventListener('click', function() {
+                        const index = parseInt(this.dataset.index);
+                        const meaningItem = document.getElementById(`meaning-${index}`);
+                        const isActive = this.classList.contains('active');
+
+                        if (isActive) {
+                            this.classList.remove('active');
+                            meaningItem.classList.remove('show');
+                        } else {
+                            this.classList.add('active');
+                            meaningItem.classList.add('show');
+                        }
+                    });
+                });
+            }
+
+            // 各类文件解析方法
+            function readTxtFile(file) {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => resolve(e.target.result);
+                    reader.onerror = () => reject(new Error("TXT文件读取失败"));
+                    reader.readAsText(file, 'UTF-8');
+                });
+            }
+
+            function readDocFile(file) {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = async (e) => {
+                        try {
+                            const result = await mammoth.extractRawText({ arrayBuffer: e.target.result });
+                            resolve(result.value);
+                        } catch (err) {
+                            reject(new Error("DOC/DOCX文件解析失败"));
+                        }
+                    };
+                    reader.onerror = () => reject(new Error("DOC/DOCX文件读取失败"));
+                    reader.readAsArrayBuffer(file);
+                });
+            }
+
+            async function readPdfFile(file) {
+                const arrayBuffer = await new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => resolve(e.target.result);
+                    reader.onerror = () => reject(new Error("PDF文件读取失败"));
+                    reader.readAsArrayBuffer(file);
+                });
+
+                const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+                let text = '';
+                for (let i = 1; i <= pdf.numPages; i++) {
+                    const page = await pdf.getPage(i);
+                    const content = await page.getTextContent();
+                    text += content.items.map(item => item.str).join('\n');
+                }
+                return text;
+            }
+
+            function readRtfFile(file) {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        try {
+                            const rtf = new RTFJS.Document(e.target.result);
+                            resolve(rtf.render());
+                        } catch (err) {
+                            reject(new Error("RTF文件解析失败"));
+                        }
+                    };
+                    reader.onerror = () => reject(new Error("RTF文件读取失败"));
+                    reader.readAsText(file, 'UTF-8');
+                });
+            }
+        });
+    </script>
+</body>
+</html>
